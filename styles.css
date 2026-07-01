@@ -120,3 +120,78 @@ td{padding:11px 10px;border-bottom:1px solid var(--line);font-size:14px}
   .grid,.grid-3,.stats,.form-grid{grid-template-columns:1fr}
   .page{padding:12px}.card{padding:19px}.timeline{grid-template-columns:1fr}.timeline:before{display:none}
 }
+
+
+/* V2 Dispatch status enhancements */
+.status-line{
+  margin:10px 0 0;
+  font-weight:900;
+  font-size:14px;
+  color:var(--teal-dark);
+}
+.status-line.road{color:var(--blue-text)}
+.status-line.stop{color:var(--orange-text)}
+.status-line.wait{color:var(--muted)}
+.status-line.done{color:var(--green-text)}
+.status-line.full{color:var(--red-text)}
+
+.bus-card.bus-open{border-left:7px solid #17a66a}
+.bus-card.bus-partial{border-left:7px solid var(--yellow)}
+.bus-card.bus-full{border-left:7px solid #d52424}
+.bus-card.bus-road{border-left:7px solid #1553a3}
+.bus-card.bus-stop{border-left:7px solid #a25d00}
+.bus-card.bus-done{border-left:7px solid #087a3d}
+
+.stat.full{
+  background:#ffe4e4;
+  border-color:#ffc7c7;
+}
+.stat.full span,
+.stat.full strong{
+  color:#c02121;
+}
+.stat.partial{
+  background:#fff8dd;
+  border-color:#f1df9b;
+}
+.stat.partial span,
+.stat.partial strong{
+  color:#8a6200;
+}
+.stat.open{
+  background:#e8f8ee;
+  border-color:#bceacb;
+}
+.stat.open span,
+.stat.open strong{
+  color:#087a3d;
+}
+.stat.zero{
+  background:#f1f4f5;
+  border-color:#d6dee0;
+}
+.stat.zero span,
+.stat.zero strong{
+  color:#6b7b80;
+}
+
+.badge-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:8px 0 10px;
+}
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:999px;
+  font-weight:900;
+  font-size:12px;
+}
+.badge-full{background:#ffe4e4;color:#c02121}
+.badge-partial{background:#fff4de;color:#a25d00}
+.badge-open{background:#e7f7f1;color:#087a3d}
+.badge-road{background:#e8f1ff;color:#1553a3}
+.badge-stop{background:#fff4de;color:#a25d00}
+.badge-wait{background:#eefafa;color:#006a70}
+.badge-done{background:#e8f8ee;color:#087a3d}

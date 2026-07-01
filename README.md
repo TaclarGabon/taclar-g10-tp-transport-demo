@@ -25,3 +25,12 @@ Pour une vraie application, il faudra remplacer `localStorage` par Firebase.
 4. Choisir la branche `main` et le dossier `/root`.
 5. Ouvrir l'URL GitHub Pages générée.
 
+
+
+## Version 2
+
+Amélioration du dispatch :
+- affiche "En route vers La Poste", "En route vers Centre-ville", etc.
+- affiche "À l’arrêt : La Poste — embarquement"
+- affiche le statut de remplissage : Vide, Places en cours, Complet
+- ajoute des couleurs selon le statut du bus et des places.

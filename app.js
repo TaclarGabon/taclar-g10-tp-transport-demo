@@ -364,9 +364,63 @@ function terminalName(busDef){
   return busDef.stops[busDef.stops.length - 1].name;
 }
 
+
+function occupancyStatus(busState){
+  const reserved = totalReserved(busState);
+  const remaining = remainingSeats(busState);
+  if(remaining <= 0) return {label:"Complet", cls:"badge badge-full", cardCls:"bus-full", statReserved:"full", statRemaining:"zero"};
+  if(reserved > 0) return {label:"Places en cours", cls:"badge badge-partial", cardCls:"bus-partial", statReserved:"partial", statRemaining:"partial"};
+  return {label:"Vide", cls:"badge badge-open", cardCls:"bus-open", statReserved:"open", statRemaining:"open"};
+}
+
+function movementStatus(busDef, busState){
+  const stage = busState.stage;
+  const finalStage = busDef.stops.length * 2 - 2;
+
+  if(stage === 0){
+    return {
+      label:`En attente au départ : ${busDef.stops[0].name}`,
+      short:"En attente départ",
+      cls:"badge badge-wait",
+      lineCls:"status-line wait",
+      cardCls:"bus-open"
+    };
+  }
+
+  if(stage >= finalStage){
+    return {
+      label:`Arrivé au terminus : ${busDef.stops[busDef.stops.length - 1].name}`,
+      short:"Course terminée",
+      cls:"badge badge-done",
+      lineCls:"status-line done",
+      cardCls:"bus-done"
+    };
+  }
+
+  const moveIndex = Math.floor((stage + 1) / 2);
+
+  if(stage % 2 === 1){
+    return {
+      label:`En route vers ${busDef.stops[moveIndex].name}`,
+      short:`Vers ${busDef.stops[moveIndex].name}`,
+      cls:"badge badge-road",
+      lineCls:"status-line road",
+      cardCls:"bus-road"
+    };
+  }
+
+  return {
+    label:`À l’arrêt : ${busDef.stops[moveIndex].name} — embarquement`,
+    short:`Arrêt ${busDef.stops[moveIndex].name}`,
+    cls:"badge badge-stop",
+    lineCls:"status-line stop",
+    cardCls:"bus-stop"
+  };
+}
+
 window.G10TP = {
   BUS_DEFINITIONS, CAPACITY, loadState, saveState, resetAll, clearAllEmpty, getBusDef,
   totalReserved, remainingSeats, currentStatus, isTripFinished, getStepText, advanceTrip,
   resetTripOnly, resetBusFull, addReservation, sortedReservations, groupTotal,
-  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName
+  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus
 };

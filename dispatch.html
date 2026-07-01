@@ -44,18 +44,38 @@
       const state = G10TP.loadState();
       cards.innerHTML = G10TP.BUS_DEFINITIONS.map(bus => {
         const b = state.buses[bus.id];
-        const status = G10TP.currentStatus(b);
-        const step = G10TP.getStepText(bus, b);
+        const move = G10TP.movementStatus(bus, b);
+        const occ = G10TP.occupancyStatus(b);
+        const reserved = G10TP.totalReserved(b);
+        const remaining = G10TP.remainingSeats(b);
+
         return `
-          <div class="bus-card">
-            <span class="${status.cls}">${status.label}</span>
-            <h3>${bus.label}</h3>
-            <p class="small"><strong>${bus.axis}</strong><br>${bus.routeName}<br>Départ ${bus.startTime}</p>
-            <div class="stats" style="grid-template-columns:1fr 1fr">
-              <div class="stat"><span>Réservées</span><strong>${G10TP.totalReserved(b)}</strong></div>
-              <div class="stat"><span>Restantes</span><strong>${G10TP.remainingSeats(b)}</strong></div>
+          <div class="bus-card ${move.cardCls} ${occ.cardCls}">
+            <div class="badge-row">
+              <span class="${move.cls}">${move.short}</span>
+              <span class="${occ.cls}">${occ.label}</span>
             </div>
-            <p class="small">${step.current}</p>
+
+            <h3>${bus.label} ${remaining <= 0 ? "— Complet" : ""}</h3>
+
+            <p class="small">
+              <strong>${bus.axis}</strong><br>
+              ${bus.routeName}<br>
+              Départ ${bus.startTime}
+            </p>
+
+            <p class="${move.lineCls}">${move.label}</p>
+
+            <div class="stats" style="grid-template-columns:1fr 1fr">
+              <div class="stat ${occ.statReserved}">
+                <span>Réservées</span>
+                <strong>${reserved}</strong>
+              </div>
+              <div class="stat ${occ.statRemaining}">
+                <span>Restantes</span>
+                <strong>${remaining}</strong>
+              </div>
+            </div>
           </div>
         `;
       }).join("");
