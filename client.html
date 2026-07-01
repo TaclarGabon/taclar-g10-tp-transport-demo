@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10 TP Transport — Client</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <div class="brand">
+        <div class="logo">🚌</div>
+        <div>
+          <h1>Interface Client</h1>
+          <p>Réserver une place sur un départ programmé</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Accueil</a>
+        <a class="active" href="client.html">Client</a>
+        <a href="chauffeur.html">Chauffeur</a>
+        <a href="dispatch.html">Dispatch</a>
+      </nav>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Choisir un départ</h2>
+        <p class="muted">Le client choisit son bus / son axe, puis réserve sa place.</p>
+
+        <label for="busSelect">Bus disponible</label>
+        <select id="busSelect"></select>
+
+        <div id="routeInfo" style="margin-top:16px"></div>
+        <div id="timeline"></div>
+
+        <div class="stats">
+          <div class="stat"><span>Capacité</span><strong>24</strong></div>
+          <div class="stat"><span>Réservées</span><strong id="reservedTotal">0</strong></div>
+          <div class="stat"><span>Restantes</span><strong id="remainingTotal">24</strong></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Réserver</h2>
+        <p class="muted">Version pilote : destination finale unique selon le sens actif du bus.</p>
+
+        <div class="form-grid">
+          <div class="full">
+            <label for="name">Nom complet</label>
+            <input id="name" type="text" placeholder="Ex : Marie-Josée Aï" />
+          </div>
+          <div>
+            <label for="phone">Téléphone</label>
+            <input id="phone" type="tel" placeholder="Ex : 077 00 00 00" />
+          </div>
+          <div>
+            <label for="seats">Nombre de places</label>
+            <input id="seats" type="number" min="1" max="24" value="1" />
+          </div>
+          <div>
+            <label for="boarding">Point de montée</label>
+            <select id="boarding"></select>
+          </div>
+          <div>
+            <label>Destination</label>
+            <input id="destination" disabled />
+          </div>
+        </div>
+
+        <button class="primary" id="reserveBtn">Réserver maintenant</button>
+        <button class="secondary" id="sampleBtn">Ajouter un exemple</button>
+        <div id="message" class="message"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    const busSelect = document.getElementById("busSelect");
+    const boarding = document.getElementById("boarding");
+    const destination = document.getElementById("destination");
+    const timeline = document.getElementById("timeline");
+    const routeInfo = document.getElementById("routeInfo");
+    const msg = document.getElementById("message");
+
+    G10TP.fillBusSelect(busSelect);
+
+    function currentBusId(){ return busSelect.value; }
+
+    function render(){
+      const state = G10TP.loadState();
+      const busDef = G10TP.getBusDef(currentBusId());
+      const busState = state.buses[currentBusId()];
+      const status = G10TP.currentStatus(busState);
+
+      G10TP.fillBoardingSelect(boarding, busDef);
+      destination.value = G10TP.terminalName(busDef);
+
+      routeInfo.innerHTML = `
+        <span class="${status.cls}">${status.label}</span>
+        <h3>${busDef.label} — ${busDef.routeName}</h3>
+        <p class="muted">${busDef.axis} · Départ programmé ${busDef.startTime}</p>
+      `;
+
+      G10TP.renderTimeline(timeline, busDef, busState);
+      document.getElementById("reservedTotal").textContent = G10TP.totalReserved(busState);
+      document.getElementById("remainingTotal").textContent = G10TP.remainingSeats(busState);
+
+      const closed = busState.stage > 0 || G10TP.remainingSeats(busState) <= 0;
+      document.getElementById("reserveBtn").disabled = closed;
+    }
+
+    function show(text, type){
+      msg.textContent = text;
+      msg.className = "message " + (type === "error" ? "err" : "ok");
+    }
+
+    document.getElementById("reserveBtn").addEventListener("click", () => {
+      const result = G10TP.addReservation(currentBusId(), {
+        name:document.getElementById("name").value,
+        phone:document.getElementById("phone").value,
+        boarding:boarding.value,
+        seats:parseInt(document.getElementById("seats").value, 10)
+      });
+      render();
+      show(result.message, result.ok ? "ok" : "error");
+      if(result.ok){
+        document.getElementById("name").value = "";
+        document.getElementById("phone").value = "";
+        document.getElementById("seats").value = 1;
+      }
+    });
+
+    const samples = [
+      {name:"MARIE-JO", phone:"", seats:2},
+      {name:"PATRICK", phone:"", seats:1},
+      {name:"FAMILLE NGOMO", phone:"", seats:4},
+      {name:"RENE", phone:"", seats:3}
+    ];
+    let sampleIndex = 0;
+
+    document.getElementById("sampleBtn").addEventListener("click", () => {
+      const sample = samples[sampleIndex % samples.length];
+      sampleIndex++;
+      const result = G10TP.addReservation(currentBusId(), {...sample, boarding:boarding.value});
+      render();
+      show(result.message, result.ok ? "ok" : "error");
+    });
+
+    busSelect.addEventListener("change", render);
+    render();
+  </script>
+</body>
+</html>

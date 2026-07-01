@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10 TP Transport — Démo</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <div class="brand">
+        <div class="logo">🚌</div>
+        <div>
+          <h1>G10 TP Transport — Démo GitHub</h1>
+          <p>Client, chauffeur et dispatch avec mémoire partagée locale</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a class="active" href="index.html">Accueil</a>
+        <a href="client.html">Client</a>
+        <a href="chauffeur.html">Chauffeur</a>
+        <a href="dispatch.html">Dispatch</a>
+      </nav>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Objectif de la démo</h2>
+        <p class="muted">
+          Cette version sert à montrer la logique : un client réserve une place, puis le chauffeur
+          voit la réservation sur son interface si les pages sont ouvertes sur le même navigateur / même domaine GitHub Pages.
+        </p>
+        <div class="grid-3">
+          <div class="bus-card">
+            <h3>1. Client</h3>
+            <p class="small">Choisit un bus, un point de montée et réserve.</p>
+            <a class="nav active" style="display:inline-block;margin-top:10px" href="client.html">Ouvrir</a>
+          </div>
+          <div class="bus-card">
+            <h3>2. Chauffeur</h3>
+            <p class="small">Voit la liste passagers et avance la course.</p>
+            <a class="nav active" style="display:inline-block;margin-top:10px" href="chauffeur.html">Ouvrir</a>
+          </div>
+          <div class="bus-card">
+            <h3>3. Dispatch</h3>
+            <p class="small">Suit les 6 bus et peut réinitialiser la démo.</p>
+            <a class="nav active" style="display:inline-block;margin-top:10px" href="dispatch.html">Ouvrir</a>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Important</h2>
+        <p class="muted">
+          Cette version utilise <strong>localStorage</strong>, donc elle est parfaite pour une démo GitHub Pages.
+          Pour une vraie exploitation avec plusieurs téléphones, il faudra remplacer cette mémoire locale par
+          <strong>Firebase</strong>.
+        </p>
+        <button class="danger" id="resetEmpty">Réinitialiser toute la démo à zéro</button>
+        <div id="message" class="message"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    document.getElementById("resetEmpty").addEventListener("click", () => {
+      G10TP.clearAllEmpty();
+      const m = document.getElementById("message");
+      m.textContent = "Démo réinitialisée : tous les bus et toutes les réservations sont à zéro.";
+      m.className = "message ok";
+    });
+  </script>
+</body>
+</html>

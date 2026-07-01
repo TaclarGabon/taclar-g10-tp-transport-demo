@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10 TP Transport — Chauffeur</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <div class="brand">
+        <div class="logo">🚌</div>
+        <div>
+          <h1>Interface Chauffeur</h1>
+          <p>Liste passagers et suivi de course</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Accueil</a>
+        <a href="client.html">Client</a>
+        <a class="active" href="chauffeur.html">Chauffeur</a>
+        <a href="dispatch.html">Dispatch</a>
+      </nav>
+    </section>
+
+    <section class="grid">
+      <div>
+        <article class="card">
+          <h2>Choisir le bus</h2>
+          <label for="busSelect">Bus chauffeur</label>
+          <select id="busSelect"></select>
+          <div id="busInfo" style="margin-top:16px"></div>
+          <div id="timeline"></div>
+
+          <div class="stats">
+            <div class="stat"><span>Capacité</span><strong>24</strong></div>
+            <div class="stat"><span>Réservées</span><strong id="reservedTotal">0</strong></div>
+            <div class="stat"><span>Restantes</span><strong id="remainingTotal">24</strong></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Action chauffeur</h2>
+          <p class="muted">Un seul bouton principal, étape par étape.</p>
+          <div class="grid">
+            <div class="bus-card">
+              <span class="small">Étape actuelle</span>
+              <h3 id="currentStep">—</h3>
+            </div>
+            <div class="bus-card">
+              <span class="small">Prochaine action</span>
+              <h3 id="nextAction">—</h3>
+            </div>
+          </div>
+          <button class="driver-btn" id="driverBtn">Action</button>
+          <button class="secondary" id="resetTripBtn">Réinitialiser la course seulement</button>
+          <button class="danger" id="resetBusBtn">Réinitialiser ce bus à zéro</button>
+          <div id="message" class="message"></div>
+        </article>
+
+        <article class="card">
+          <h2>Journal</h2>
+          <ul id="tripLog" class="log"></ul>
+        </article>
+      </div>
+
+      <article class="card">
+        <h2>Liste des passagers</h2>
+        <p class="muted">Les passagers sont triés automatiquement par point de montée.</p>
+        <div id="reservationTable"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    const busSelect = document.getElementById("busSelect");
+    const timeline = document.getElementById("timeline");
+    const busInfo = document.getElementById("busInfo");
+    const reservationTable = document.getElementById("reservationTable");
+    const msg = document.getElementById("message");
+
+    G10TP.fillBusSelect(busSelect);
+
+    function currentBusId(){ return busSelect.value; }
+
+    function render(){
+      const state = G10TP.loadState();
+      const busDef = G10TP.getBusDef(currentBusId());
+      const busState = state.buses[currentBusId()];
+      const status = G10TP.currentStatus(busState);
+      const step = G10TP.getStepText(busDef, busState);
+
+      busInfo.innerHTML = `
+        <span class="${status.cls}">${status.label}</span>
+        <h3>${busDef.label} — ${busDef.routeName}</h3>
+        <p class="muted">${busDef.axis} · Départ ${busDef.startTime}</p>
+      `;
+      G10TP.renderTimeline(timeline, busDef, busState);
+      document.getElementById("reservedTotal").textContent = G10TP.totalReserved(busState);
+      document.getElementById("remainingTotal").textContent = G10TP.remainingSeats(busState);
+      document.getElementById("currentStep").textContent = step.current;
+      document.getElementById("nextAction").textContent = step.action;
+      document.getElementById("driverBtn").textContent = step.action;
+      document.getElementById("driverBtn").disabled = G10TP.isTripFinished(busDef, busState);
+      G10TP.renderReservationTable(reservationTable, busDef, busState);
+
+      if(busState.log.length === 0){
+        document.getElementById("tripLog").innerHTML = "<li>Aucun événement de trajet pour le moment.</li>";
+      } else {
+        document.getElementById("tripLog").innerHTML = busState.log.map(item => `<li><time>${item.time}</time>${item.text}</li>`).join("");
+      }
+    }
+
+    function show(text, type="ok"){
+      msg.textContent = text;
+      msg.className = "message " + (type === "error" ? "err" : type === "info" ? "info" : "ok");
+    }
+
+    document.getElementById("driverBtn").addEventListener("click", () => {
+      G10TP.advanceTrip(currentBusId());
+      render();
+      show("Étape de course mise à jour.");
+    });
+
+    document.getElementById("resetTripBtn").addEventListener("click", () => {
+      G10TP.resetTripOnly(currentBusId());
+      render();
+      show("Course réinitialisée. Les passagers sont conservés.", "info");
+    });
+
+    document.getElementById("resetBusBtn").addEventListener("click", () => {
+      G10TP.resetBusFull(currentBusId());
+      render();
+      show("Bus réinitialisé : course, journal et passagers supprimés.");
+    });
+
+    busSelect.addEventListener("change", render);
+    render();
+  </script>
+</body>
+</html>

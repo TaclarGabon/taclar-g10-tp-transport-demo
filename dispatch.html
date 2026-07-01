@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10 TP Transport — Dispatch</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <div class="brand">
+        <div class="logo">🚌</div>
+        <div>
+          <h1>Interface Dispatch</h1>
+          <p>Suivi global des 6 bus</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Accueil</a>
+        <a href="client.html">Client</a>
+        <a href="chauffeur.html">Chauffeur</a>
+        <a class="active" href="dispatch.html">Dispatch</a>
+      </nav>
+    </section>
+
+    <article class="card">
+      <h2>Vue d’ensemble</h2>
+      <p class="muted">Cette page permet de voir les bus, leurs statuts et les places disponibles.</p>
+      <div class="grid-3" id="busCards"></div>
+      <button class="secondary" id="refreshBtn">Actualiser</button>
+      <button class="danger" id="resetEmptyBtn">Réinitialiser toute la démo à zéro</button>
+      <button class="danger" id="resetDemoBtn">Réinitialiser avec exemples Bus 1</button>
+      <div id="message" class="message"></div>
+    </article>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    const cards = document.getElementById("busCards");
+    const msg = document.getElementById("message");
+
+    function render(){
+      const state = G10TP.loadState();
+      cards.innerHTML = G10TP.BUS_DEFINITIONS.map(bus => {
+        const b = state.buses[bus.id];
+        const status = G10TP.currentStatus(b);
+        const step = G10TP.getStepText(bus, b);
+        return `
+          <div class="bus-card">
+            <span class="${status.cls}">${status.label}</span>
+            <h3>${bus.label}</h3>
+            <p class="small"><strong>${bus.axis}</strong><br>${bus.routeName}<br>Départ ${bus.startTime}</p>
+            <div class="stats" style="grid-template-columns:1fr 1fr">
+              <div class="stat"><span>Réservées</span><strong>${G10TP.totalReserved(b)}</strong></div>
+              <div class="stat"><span>Restantes</span><strong>${G10TP.remainingSeats(b)}</strong></div>
+            </div>
+            <p class="small">${step.current}</p>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function show(text){
+      msg.textContent = text;
+      msg.className = "message ok";
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", render);
+    document.getElementById("resetEmptyBtn").addEventListener("click", () => {
+      G10TP.clearAllEmpty();
+      render();
+      show("Démo remise à zéro : aucun passager, aucune course en cours.");
+    });
+    document.getElementById("resetDemoBtn").addEventListener("click", () => {
+      G10TP.resetAll();
+      render();
+      show("Démo réinitialisée avec exemples sur Bus 1.");
+    });
+
+    render();
+  </script>
+</body>
+</html>
