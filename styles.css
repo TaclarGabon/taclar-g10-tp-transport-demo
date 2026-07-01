@@ -195,3 +195,70 @@ td{padding:11px 10px;border-bottom:1px solid var(--line);font-size:14px}
 .badge-stop{background:#fff4de;color:#a25d00}
 .badge-wait{background:#eefafa;color:#006a70}
 .badge-done{background:#e8f8ee;color:#087a3d}
+
+
+/* V3 Dynamic route timeline */
+.timeline{
+  --progress:0%;
+}
+.timeline:before{
+  background:var(--line) !important;
+}
+.timeline:after{
+  content:"";
+  position:absolute;
+  height:5px;
+  background:var(--teal);
+  left:9%;
+  top:17px;
+  width:calc((82%) * var(--progress-num, 0));
+  border-radius:999px;
+  z-index:0;
+  transition:width .35s ease;
+}
+.timeline.stops-3:after{
+  left:11%;
+  width:calc((78%) * var(--progress-num, 0));
+}
+.timeline.progress-0:after{--progress-num:0}
+.timeline.progress-1:after{--progress-num:.5}
+.timeline.progress-2:after{--progress-num:.5}
+.timeline.progress-3:after{--progress-num:1}
+.timeline.progress-4:after{--progress-num:1}
+
+.timeline .stop.active .dot{
+  box-shadow:0 0 0 7px rgba(0,140,145,.14);
+}
+.timeline .stop.moving .dot{
+  background:var(--yellow);
+  border-color:#fff4bd;
+  box-shadow:0 0 0 7px rgba(255,210,63,.25);
+}
+.timeline .stop.moving strong{
+  color:#8a6200;
+}
+.route-motion{
+  margin-top:12px;
+  padding:11px 13px;
+  border-radius:14px;
+  background:#e8f1ff;
+  border:1px solid #cbdcff;
+  color:#1553a3;
+  font-weight:900;
+  font-size:14px;
+}
+.route-motion.stop{
+  background:#fff4de;
+  border-color:#f1df9b;
+  color:#a25d00;
+}
+.route-motion.wait{
+  background:#eefafa;
+  border-color:#d5e4e6;
+  color:#006a70;
+}
+.route-motion.done{
+  background:#e8f8ee;
+  border-color:#bceacb;
+  color:#087a3d;
+}

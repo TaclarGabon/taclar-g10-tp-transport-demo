@@ -34,3 +34,11 @@ Amélioration du dispatch :
 - affiche "À l’arrêt : La Poste — embarquement"
 - affiche le statut de remplissage : Vide, Places en cours, Complet
 - ajoute des couleurs selon le statut du bus et des places.
+
+
+## Version 3
+
+Amélioration de la frise de trajet :
+- la ligne se colore selon l’avancement ;
+- le point de destination en cours devient jaune ;
+- un message indique clairement : en attente, en route vers..., à l’arrêt..., ou arrivé au terminus.

@@ -308,20 +308,49 @@ function renderReservationTable(target, busDef, busState){
 
 function renderTimeline(target, busDef, busState){
   const stops = busDef.stops;
-  const activeStopIndex = getActiveStopIndex(busState.stage, stops.length);
-  const progress = Math.min(busState.stage, 4);
-  target.className = `timeline ${stops.length === 3 ? "stops-3" : ""} progress-${progress}`;
+  const stage = busState.stage;
+  const finalStage = busDef.stops.length * 2 - 2;
+  const activeStopIndex = getActiveStopIndex(stage, stops.length);
+
+  let progressClass = "progress-0";
+  if(stops.length === 3){
+    if(stage <= 0) progressClass = "progress-0";
+    else if(stage === 1) progressClass = "progress-1"; // en route vers arrêt 2
+    else if(stage === 2) progressClass = "progress-2"; // arrivé arrêt 2
+    else if(stage === 3) progressClass = "progress-3"; // en route terminus
+    else progressClass = "progress-4";
+  } else {
+    const ratio = finalStage > 0 ? Math.min(stage / finalStage, 1) : 0;
+    if(ratio <= 0) progressClass = "progress-0";
+    else if(ratio <= .34) progressClass = "progress-1";
+    else if(ratio <= .67) progressClass = "progress-2";
+    else if(ratio < 1) progressClass = "progress-3";
+    else progressClass = "progress-4";
+  }
+
+  target.className = `timeline ${stops.length === 3 ? "stops-3" : ""} ${progressClass}`;
+
+  const movingToIndex = stage % 2 === 1 ? Math.floor((stage + 1) / 2) : -1;
+
   target.innerHTML = stops.map((stop, index) => {
-    const done = index < activeStopIndex || isTripFinished(busDef, busState);
-    const active = index === activeStopIndex && !isTripFinished(busDef, busState);
+    const finished = isTripFinished(busDef, busState);
+    const done = index < activeStopIndex || finished;
+    const active = index === activeStopIndex && !finished && movingToIndex === -1;
+    const moving = index === movingToIndex && !finished;
     return `
-      <div class="stop ${done ? "done" : ""} ${active ? "active" : ""}">
+      <div class="stop ${done ? "done" : ""} ${active ? "active" : ""} ${moving ? "moving" : ""}">
         <div class="dot"></div>
         <strong>${escapeHtml(stop.name)}</strong>
         <span>${escapeHtml(stop.time)}</span>
       </div>
     `;
   }).join("");
+
+  const oldMotion = target.parentElement ? target.parentElement.querySelector(".route-motion") : null;
+  if(oldMotion) oldMotion.remove();
+
+  const motion = movementStatus(busDef, busState);
+  target.insertAdjacentHTML("afterend", `<div class="route-motion ${motion.lineCls.includes("road") ? "" : motion.lineCls.includes("stop") ? "stop" : motion.lineCls.includes("done") ? "done" : "wait"}">${motion.label}</div>`);
 }
 
 function getActiveStopIndex(stage, stopCount){
