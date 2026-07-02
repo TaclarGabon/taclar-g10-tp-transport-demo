@@ -159,17 +159,16 @@
       }
 
       const statusCounts = {
-        waiting: b.reservations.filter(r => G10TP.passengerStatusLabel(r) === "En attente").reduce((sum,r)=>sum+Number(r.seats||0),0),
-        boarded: b.reservations.filter(r => G10TP.passengerStatusLabel(r) === "Monté et payé" || G10TP.passengerStatusLabel(r) === "Monté et scanné").reduce((sum,r)=>sum+Number(r.seats||0),0),
+        boarded: b.reservations.filter(r => G10TP.passengerStatusLabel(r) === "Monté et payé").reduce((sum,r)=>sum+Number(r.seats||0),0),
         absent: b.reservations.filter(r => G10TP.passengerStatusLabel(r) === "Absent").reduce((sum,r)=>sum+Number(r.seats||0),0)
       };
 
       html += `
         <h3 class="info-section-title">Résumé des statuts</h3>
         <div class="info-summary">
-          <div class="stat"><span>En attente</span><strong>${statusCounts.waiting}</strong></div>
-          <div class="stat"><span>Montés</span><strong>${statusCounts.boarded}</strong></div>
+          <div class="stat"><span>Montés/payés</span><strong>${statusCounts.boarded}</strong></div>
           <div class="stat"><span>Absents</span><strong>${statusCounts.absent}</strong></div>
+          <div class="stat"><span>Total</span><strong>${reserved}</strong></div>
         </div>
       `;
 

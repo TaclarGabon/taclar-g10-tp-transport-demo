@@ -334,7 +334,7 @@
               </div>
             </div>
 
-            <div class="tariff-note" id="cashFareNote">Tarif calculé à 60 FCFA/km, minimum 300 FCFA.</div>
+            <div class="tariff-note" id="cashFareNote">Tarif calculé à 60 FCFA/km, minimum 300 FCFA.</div><div class="logic-note">Le cash est autorisé seulement au point de montée actif. Dès que le bus est en route, l’encaissement est bloqué.</div>
 
             <button class="primary" id="cashBtn">Encaisser cash et ajouter au bus</button>
           </article>
@@ -362,12 +362,12 @@
                 <strong id="activeBoardingStop">—</strong>
               </div>
               <div class="stop-action-box">
-                <span>En attente à cet arrêt</span>
+                <span>Absents à cet arrêt</span>
                 <strong id="waitingAtStop">0</strong>
               </div>
             </div>
 
-            <button class="secondary" id="confirmAllBtn">Confirmer tous les passagers de cet arrêt</button>
+            <button class="secondary" id="confirmAllBtn">Mettre tous les passagers de cet arrêt en Monté/payé</button>
             <button class="primary-action" id="driverBtn">Action</button>
             <button class="secondary" id="resetTripBtn">Réinitialiser la course seulement</button>
             <button class="danger" id="resetBusBtn">Réinitialiser ce bus à zéro</button>
@@ -416,11 +416,11 @@
         <p class="small">${busDef.axis} · Départ ${busDef.startTime}</p>
       `;
 
-      const previousCashBoarding = cashBoarding.value;
+      const activeStopForCash = G10TP.currentBoardingStopForDeparture(busDef, busState);
       G10TP.fillBoardingSelect(cashBoarding, busDef);
-      if(previousCashBoarding){
-        const exists = [...cashBoarding.options].some(o => o.value === previousCashBoarding);
-        if(exists) cashBoarding.value = previousCashBoarding;
+      if(activeStopForCash){
+        const exists = [...cashBoarding.options].some(o => o.value === activeStopForCash);
+        if(exists) cashBoarding.value = activeStopForCash;
       }
 
       G10TP.renderTimeline(timeline, busDef, busState);
@@ -437,7 +437,7 @@
       document.getElementById("activeBoardingStop").textContent = activeStop || "Aucun";
       const waitingAtStop = activeStop
         ? busState.reservations
-            .filter(r => r.boarding === activeStop && G10TP.passengerStatusLabel(r) === "En attente")
+            .filter(r => r.boarding === activeStop && G10TP.passengerStatusLabel(r) === "Absent")
             .reduce((sum, r) => sum + Number(r.seats || 0), 0)
         : 0;
       document.getElementById("waitingAtStop").textContent = waitingAtStop;
@@ -501,7 +501,6 @@
 
         const status = G10TP.passengerStatusLabel(r);
         const disabledBoarded = status === "Monté et payé" ? "disabled" : "";
-        const disabledScanned = status === "Monté et scanné" ? "disabled" : "";
         const disabledAbsent = status === "Absent" ? "disabled" : "";
 
         html += `
@@ -514,9 +513,7 @@
             <td>
               <div class="passenger-actions">
                 <button class="btn-mini-ok" data-status="Monté et payé" data-passenger="${r.id}" ${disabledBoarded}>Monté/payé</button>
-                <button class="btn-mini-scan" data-status="Monté et scanné" data-passenger="${r.id}" ${disabledScanned}>Scanné</button>
                 <button class="btn-mini-absent" data-status="Absent" data-passenger="${r.id}" ${disabledAbsent}>Absent</button>
-                <button class="btn-mini-reset" data-status="En attente" data-passenger="${r.id}">Attente</button>
               </div>
             </td>
           </tr>
@@ -545,17 +542,29 @@
     }
 
     function updateCashFare(){
+      const state = G10TP.loadState();
+      const busDef = G10TP.getBusDef(currentBusId());
+      const busState = state.buses[currentBusId()];
+      const activeStop = G10TP.currentBoardingStopForDeparture(busDef, busState);
+
       const seats = parseInt(document.getElementById("cashSeats").value, 10) || 0;
       const fare = G10TP.farePerSeat(currentBusId(), cashBoarding.value);
       const km = G10TP.kmForFare(currentBusId(), cashBoarding.value);
 
       document.getElementById("cashFarePerSeat").textContent = G10TP.formatMoney(fare);
       document.getElementById("cashFareTotal").textContent = fare === null ? "Tarif à confirmer" : G10TP.formatMoney(fare * seats);
-      document.getElementById("cashFareNote").textContent = fare === null
-        ? "Tarif à confirmer après validation de la distance."
-        : `${km} km retenu(s) × 60 FCFA/km, avec minimum/arrondi commercial.`;
 
-      document.getElementById("cashBtn").disabled = fare === null;
+      const cashAllowed = activeStop && cashBoarding.value === activeStop && fare !== null;
+
+      if(!activeStop){
+        document.getElementById("cashFareNote").textContent = "Cash fermé : le bus est en route ou la course est terminée.";
+      } else if(cashBoarding.value !== activeStop){
+        document.getElementById("cashFareNote").textContent = `Cash fermé pour ce point : le point de montée actif est ${activeStop}.`;
+      } else {
+        document.getElementById("cashFareNote").textContent = `${km} km retenu(s) × 60 FCFA/km. Cash ouvert uniquement à ${activeStop}.`;
+      }
+
+      document.getElementById("cashBtn").disabled = !cashAllowed;
     }
 
     document.getElementById("cashBtn").addEventListener("click", () => {

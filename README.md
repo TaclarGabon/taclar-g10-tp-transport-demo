@@ -97,3 +97,14 @@ Ajouts :
 - bouton "Confirmer tous les passagers de cet arrêt" ;
 - au moment du départ d’un arrêt, les passagers encore en attente à cet arrêt passent automatiquement en "Absent" ;
 - le dispatch voit aussi les statuts dans "Info passagers".
+
+
+## Version 8 — Correction logique terrain
+
+Corrections :
+- suppression de "En attente" et "Monté et scanné" ;
+- seuls statuts passagers conservés : "Absent" et "Monté et payé" ;
+- une réservation est "Absent" par défaut tant que le chauffeur ne confirme pas la montée ;
+- si le bus part, les passagers non confirmés restent "Absent" ;
+- paiement cash bloqué lorsque le bus est en route ou la course terminée ;
+- paiement cash autorisé seulement au point de montée actif.
