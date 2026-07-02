@@ -69,7 +69,19 @@
           </div>
         </div>
 
-        <button class="primary" id="reserveBtn">Réserver maintenant</button>
+        <div class="price-grid">
+          <div class="price-box">
+            <span>Prix par place</span>
+            <strong id="farePerSeat">—</strong>
+          </div>
+          <div class="price-box">
+            <span>Total à payer</span>
+            <strong id="fareTotal">—</strong>
+          </div>
+        </div>
+        <div class="tariff-note" id="fareNote">Tarif calculé à 60 FCFA/km, minimum 300 FCFA.</div>
+
+        <button class="primary" id="reserveBtn">Payer et réserver maintenant</button>
         <button class="secondary" id="sampleBtn">Ajouter un exemple</button>
         <div id="message" class="message"></div>
       </article>
@@ -89,13 +101,29 @@
 
     function currentBusId(){ return busSelect.value; }
 
+    function updateFare(){
+      const seats = parseInt(document.getElementById("seats").value, 10) || 0;
+      const fare = G10TP.farePerSeat(currentBusId(), boarding.value);
+      const km = G10TP.kmForFare(currentBusId(), boarding.value);
+      document.getElementById("farePerSeat").textContent = G10TP.formatMoney(fare);
+      document.getElementById("fareTotal").textContent = fare === null ? "Tarif à confirmer" : G10TP.formatMoney(fare * seats);
+      document.getElementById("fareNote").textContent = fare === null
+        ? "Tarif à confirmer après validation de la distance."
+        : `${km} km retenu(s) × 60 FCFA/km, avec minimum/arrondi commercial.`;
+    }
+
     function render(){
       const state = G10TP.loadState();
       const busDef = G10TP.getBusDef(currentBusId());
       const busState = state.buses[currentBusId()];
       const status = G10TP.currentStatus(busState);
 
+      const previousBoarding = boarding.value;
       G10TP.fillBoardingSelect(boarding, busDef);
+      if(previousBoarding){
+        const exists = [...boarding.options].some(o => o.value === previousBoarding);
+        if(exists) boarding.value = previousBoarding;
+      }
       destination.value = G10TP.terminalName(busDef);
 
       routeInfo.innerHTML = `
@@ -108,7 +136,9 @@
       document.getElementById("reservedTotal").textContent = G10TP.totalReserved(busState);
       document.getElementById("remainingTotal").textContent = G10TP.remainingSeats(busState);
 
-      const closed = busState.stage > 0 || G10TP.remainingSeats(busState) <= 0;
+      updateFare();
+      const fareReady = G10TP.farePerSeat(currentBusId(), boarding.value) !== null;
+      const closed = busState.stage > 0 || G10TP.remainingSeats(busState) <= 0 || !fareReady;
       document.getElementById("reserveBtn").disabled = closed;
     }
 
@@ -150,6 +180,8 @@
     });
 
     busSelect.addEventListener("change", render);
+    boarding.addEventListener("change", updateFare);
+    document.getElementById("seats").addEventListener("input", updateFare);
     render();
   </script>
 </body>

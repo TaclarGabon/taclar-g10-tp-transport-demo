@@ -262,3 +262,65 @@ td{padding:11px 10px;border-bottom:1px solid var(--line);font-size:14px}
   border-color:#bceacb;
   color:#087a3d;
 }
+
+
+/* V4 — Paiement / tarifs */
+.price-box{
+  background:#fff8dd;
+  border:1px solid #f1df9b;
+  border-radius:18px;
+  padding:16px;
+  margin-top:14px;
+}
+.price-box span{
+  display:block;
+  color:#8a6200;
+  font-size:13px;
+  font-weight:900;
+}
+.price-box strong{
+  display:block;
+  margin-top:5px;
+  color:#5d4300;
+  font-size:30px;
+}
+.price-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.payment-paid{
+  background:#e8f8ee;
+  color:#087a3d;
+}
+.payment-cash{
+  background:#fff4de;
+  color:#a25d00;
+}
+.payment-pending{
+  background:#ffe4e4;
+  color:#c02121;
+}
+.cash-panel{
+  background:linear-gradient(180deg,#fffdf4,#fff8dd);
+  border:1px solid #f1df9b;
+  border-radius:20px;
+  padding:18px;
+}
+.money{
+  font-weight:900;
+  color:#006a70;
+}
+.tariff-note{
+  margin-top:10px;
+  padding:12px;
+  border-radius:14px;
+  background:#eefafa;
+  border:1px solid #d5e4e6;
+  color:#006a70;
+  font-size:13px;
+  line-height:1.35;
+}
+@media(max-width:900px){
+  .price-grid{grid-template-columns:1fr}
+}

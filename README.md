@@ -42,3 +42,28 @@ Amélioration de la frise de trajet :
 - la ligne se colore selon l’avancement ;
 - le point de destination en cours devient jaune ;
 - un message indique clairement : en attente, en route vers..., à l’arrêt..., ou arrivé au terminus.
+
+
+## Version 4 — Paiement et tarifs 60 FCFA/km
+
+Ajouts :
+- prix par place côté client ;
+- total à payer selon le nombre de places ;
+- réservation marquée comme payée dans la démo ;
+- paiement cash côté chauffeur pour les passagers sans réservation ;
+- caisse du bus côté chauffeur ;
+- total encaissé côté dispatch.
+
+Règles :
+- tarif = distance retenue en km × 60 FCFA ;
+- distance retenue en km entier : 15,49 → 15 km ; 15,50 → 16 km ;
+- minimum commercial : 300 FCFA ;
+- arrondi du montant au 50 FCFA supérieur.
+
+Tarifs de démonstration intégrés :
+- Bus 1 : Owendo 1 000 FCFA, La Poste 300 FCFA.
+- Bus 2 : Centre-ville 1 000 FCFA, La Poste 900 FCFA.
+- Bus 3 : Owendo 1 350 FCFA, Nzeng-Ayong 600 FCFA, PK5 450 FCFA.
+- Bus 4 : PK12 1 350 FCFA, PK5 900 FCFA, Nzeng-Ayong 750 FCFA.
+- Bus 5 : Akanda 1 900 FCFA, Alibandeng 550 FCFA, La Poste 300 FCFA.
+- Bus 6 : Centre-ville 1 900 FCFA, La Poste 1 800 FCFA, Alibandeng 1 350 FCFA.

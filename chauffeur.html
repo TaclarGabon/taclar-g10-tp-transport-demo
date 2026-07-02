@@ -38,6 +38,10 @@
             <div class="stat"><span>Réservées</span><strong id="reservedTotal">0</strong></div>
             <div class="stat"><span>Restantes</span><strong id="remainingTotal">24</strong></div>
           </div>
+          <div class="price-box">
+            <span>Caisse de ce bus</span>
+            <strong id="busRevenue">0 FCFA</strong>
+          </div>
         </article>
 
         <article class="card">
@@ -57,6 +61,40 @@
           <button class="secondary" id="resetTripBtn">Réinitialiser la course seulement</button>
           <button class="danger" id="resetBusBtn">Réinitialiser ce bus à zéro</button>
           <div id="message" class="message"></div>
+        </article>
+
+        <article class="card cash-panel">
+          <h2>Paiement cash station</h2>
+          <p class="muted">Pour un client qui arrive sans réservation. Le chauffeur encaisse et ajoute directement le passager au bus.</p>
+
+          <div class="form-grid">
+            <div class="full">
+              <label for="cashName">Nom ou note</label>
+              <input id="cashName" type="text" placeholder="Ex : Passager cash / Famille 2 places" />
+            </div>
+            <div>
+              <label for="cashBoarding">Point de montée</label>
+              <select id="cashBoarding"></select>
+            </div>
+            <div>
+              <label for="cashSeats">Nombre de places</label>
+              <input id="cashSeats" type="number" min="1" max="24" value="1" />
+            </div>
+          </div>
+
+          <div class="price-grid">
+            <div class="price-box">
+              <span>Prix par place</span>
+              <strong id="cashFarePerSeat">—</strong>
+            </div>
+            <div class="price-box">
+              <span>Total cash à encaisser</span>
+              <strong id="cashFareTotal">—</strong>
+            </div>
+          </div>
+          <div class="tariff-note" id="cashFareNote">Tarif calculé à 60 FCFA/km, minimum 300 FCFA.</div>
+
+          <button class="primary" id="cashBtn">Encaisser cash et ajouter au bus</button>
         </article>
 
         <article class="card">
@@ -80,6 +118,7 @@
     const busInfo = document.getElementById("busInfo");
     const reservationTable = document.getElementById("reservationTable");
     const msg = document.getElementById("message");
+    const cashBoarding = document.getElementById("cashBoarding");
 
     G10TP.fillBusSelect(busSelect);
 
@@ -97,14 +136,24 @@
         <h3>${busDef.label} — ${busDef.routeName}</h3>
         <p class="muted">${busDef.axis} · Départ ${busDef.startTime}</p>
       `;
+      const previousCashBoarding = cashBoarding.value;
+      G10TP.fillBoardingSelect(cashBoarding, busDef);
+      if(previousCashBoarding){
+        const exists = [...cashBoarding.options].some(o => o.value === previousCashBoarding);
+        if(exists) cashBoarding.value = previousCashBoarding;
+      }
+
       G10TP.renderTimeline(timeline, busDef, busState);
       document.getElementById("reservedTotal").textContent = G10TP.totalReserved(busState);
       document.getElementById("remainingTotal").textContent = G10TP.remainingSeats(busState);
+      document.getElementById("busRevenue").textContent = G10TP.formatMoney(G10TP.busRevenue(busState));
       document.getElementById("currentStep").textContent = step.current;
       document.getElementById("nextAction").textContent = step.action;
       document.getElementById("driverBtn").textContent = step.action;
       document.getElementById("driverBtn").disabled = G10TP.isTripFinished(busDef, busState);
       G10TP.renderReservationTable(reservationTable, busDef, busState);
+
+      updateCashFare();
 
       if(busState.log.length === 0){
         document.getElementById("tripLog").innerHTML = "<li>Aucun événement de trajet pour le moment.</li>";
@@ -117,6 +166,36 @@
       msg.textContent = text;
       msg.className = "message " + (type === "error" ? "err" : type === "info" ? "info" : "ok");
     }
+
+
+    function updateCashFare(){
+      const seats = parseInt(document.getElementById("cashSeats").value, 10) || 0;
+      const fare = G10TP.farePerSeat(currentBusId(), cashBoarding.value);
+      const km = G10TP.kmForFare(currentBusId(), cashBoarding.value);
+      document.getElementById("cashFarePerSeat").textContent = G10TP.formatMoney(fare);
+      document.getElementById("cashFareTotal").textContent = fare === null ? "Tarif à confirmer" : G10TP.formatMoney(fare * seats);
+      document.getElementById("cashFareNote").textContent = fare === null
+        ? "Tarif à confirmer après validation de la distance."
+        : `${km} km retenu(s) × 60 FCFA/km, avec minimum/arrondi commercial.`;
+      document.getElementById("cashBtn").disabled = fare === null;
+    }
+
+    document.getElementById("cashBtn").addEventListener("click", () => {
+      const result = G10TP.addCashPassenger(currentBusId(), {
+        name:document.getElementById("cashName").value,
+        boarding:cashBoarding.value,
+        seats:parseInt(document.getElementById("cashSeats").value, 10)
+      });
+      render();
+      show(result.message, result.ok ? "ok" : "error");
+      if(result.ok){
+        document.getElementById("cashName").value = "";
+        document.getElementById("cashSeats").value = 1;
+      }
+    });
+
+    document.getElementById("cashSeats").addEventListener("input", updateCashFare);
+    cashBoarding.addEventListener("change", updateCashFare);
 
     document.getElementById("driverBtn").addEventListener("click", () => {
       G10TP.advanceTrip(currentBusId());

@@ -93,9 +93,9 @@ function defaultState(){
 
   // quelques données démo dans Bus 1 pour montrer la liste chauffeur
   buses.bus1.reservations = [
-    {id:uid(), name:"MJK", phone:"", boarding:"Owendo", seats:1, ref:"G10-B1-1001", createdAt:nowLabel()},
-    {id:uid(), name:"NANCY", phone:"", boarding:"Owendo", seats:1, ref:"G10-B1-1002", createdAt:nowLabel()},
-    {id:uid(), name:"EDAN", phone:"", boarding:"La Poste", seats:4, ref:"G10-B1-1003", createdAt:nowLabel()}
+    {id:uid(), name:"MJK", phone:"", boarding:"Owendo", seats:1, ref:"G10-B1-1001", createdAt:nowLabel(), farePerSeat:1000, totalAmount:1000, paymentMethod:"Réservation app", paymentStatus:"Payé"},
+    {id:uid(), name:"NANCY", phone:"", boarding:"Owendo", seats:1, ref:"G10-B1-1002", createdAt:nowLabel(), farePerSeat:1000, totalAmount:1000, paymentMethod:"Réservation app", paymentStatus:"Payé"},
+    {id:uid(), name:"EDAN", phone:"", boarding:"La Poste", seats:4, ref:"G10-B1-1003", createdAt:nowLabel(), farePerSeat:300, totalAmount:1200, paymentMethod:"Réservation app", paymentStatus:"Payé"}
   ];
 
   return { buses };
@@ -250,8 +250,15 @@ function addReservation(busId, data){
     return {ok:false, message:`Réservation impossible : il reste seulement ${remainingSeats(busState)} place(s).`};
   }
 
+  const fare = farePerSeat(busId, data.boarding);
+  if(fare === null){
+    return {ok:false, message:"Tarif non défini pour ce bus / point de montée."};
+  }
+
   const def = getBusDef(busId);
   const ref = `G10-${def.label.replace("Bus ","B")}-${Math.floor(1000 + Math.random()*9000)}`;
+  const total = fare * seats;
+
   busState.reservations.push({
     id:uid(),
     name:data.name.trim(),
@@ -259,10 +266,14 @@ function addReservation(busId, data){
     boarding:data.boarding,
     seats,
     ref,
-    createdAt:nowLabel()
+    createdAt:nowLabel(),
+    farePerSeat:fare,
+    totalAmount:total,
+    paymentMethod:"Réservation app",
+    paymentStatus:"Payé"
   });
   saveState(state);
-  return {ok:true, message:`Réservation confirmée : ${seats} place(s) depuis ${data.boarding}. Référence : ${ref}`};
+  return {ok:true, message:`Réservation confirmée : ${seats} place(s) depuis ${data.boarding}. Montant payé : ${formatMoney(total)}. Référence : ${ref}`};
 }
 
 function sortedReservations(busDef, busState){
@@ -287,7 +298,7 @@ function renderReservationTable(target, busDef, busState){
   const sorted = sortedReservations(busDef, busState);
   let html = `
     <table>
-      <thead><tr><th>Nom</th><th>Montée</th><th>Places</th><th>Réf.</th></tr></thead>
+      <thead><tr><th>Nom</th><th>Montée</th><th>Places</th><th>Paiement</th><th>Réf.</th></tr></thead>
       <tbody>
   `;
   let currentGroup = "";
@@ -296,11 +307,17 @@ function renderReservationTable(target, busDef, busState){
       currentGroup = r.boarding;
       html += `
         <tr class="group-row">
-          <td colspan="4">📍 Montée ${currentGroup} — ${groupTotal(busState, currentGroup)} place(s)</td>
+          <td colspan="5">📍 Montée ${currentGroup} — ${groupTotal(busState, currentGroup)} place(s)</td>
         </tr>
       `;
     }
-    html += `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.boarding)}</td><td>${r.seats}</td><td>${escapeHtml(r.ref)}</td></tr>`;
+    html += `<tr>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.boarding)}</td>
+      <td>${r.seats}</td>
+      <td><span class="badge ${paymentBadgeClass(r)}">${formatMoney(r.totalAmount || 0)}</span></td>
+      <td>${escapeHtml(r.ref)}</td>
+    </tr>`;
   });
   html += "</tbody></table>";
   target.innerHTML = html;
@@ -447,9 +464,125 @@ function movementStatus(busDef, busState){
   };
 }
 
+
+const FARE_RULES = {
+  bus1: {
+    "Owendo": {km:16, fare:1000},
+    "La Poste": {km:2, fare:300}
+  },
+  bus2: {
+    "Centre-ville": {km:16, fare:1000},
+    "La Poste": {km:15, fare:900}
+  },
+  bus3: {
+    "Owendo": {km:22, fare:1350},
+    "Nzeng-Ayong": {km:10, fare:600},
+    "PK5": {km:7, fare:450}
+  },
+  bus4: {
+    "PK12": {km:22, fare:1350},
+    "PK5": {km:15, fare:900},
+    "Nzeng-Ayong": {km:12, fare:750}
+  },
+  bus5: {
+    "Akanda": {km:31, fare:1900},
+    "Alibandeng": {km:9, fare:550},
+    "La Poste": {km:2, fare:300}
+  },
+  bus6: {
+    "Centre-ville": {km:31, fare:1900},
+    "La Poste": {km:30, fare:1800},
+    "Alibandeng": {km:22, fare:1350}
+  }
+};
+
+function roundFareTo50(amount){
+  return Math.ceil(Number(amount) / 50) * 50;
+}
+
+function formatMoney(amount){
+  if(amount === null || amount === undefined || Number.isNaN(Number(amount))) return "Tarif à confirmer";
+  return `${Number(amount).toLocaleString("fr-FR")} FCFA`;
+}
+
+function fareInfo(busId, boarding){
+  const rule = FARE_RULES[busId];
+  if(!rule || !rule[boarding]) return null;
+  return rule[boarding];
+}
+
+function farePerSeat(busId, boarding){
+  const info = fareInfo(busId, boarding);
+  if(!info) return null;
+  return info.fare;
+}
+
+function kmForFare(busId, boarding){
+  const info = fareInfo(busId, boarding);
+  if(!info) return null;
+  return info.km;
+}
+
+function reservationTotal(busId, boarding, seats){
+  const fare = farePerSeat(busId, boarding);
+  if(fare === null) return null;
+  return fare * Number(seats || 0);
+}
+
+function busRevenue(busState){
+  return busState.reservations.reduce((sum, r) => sum + Number(r.totalAmount || 0), 0);
+}
+
+function paymentBadgeClass(r){
+  if(r.paymentMethod === "Cash chauffeur") return "payment-cash";
+  if(r.paymentStatus === "Payé") return "payment-paid";
+  return "payment-pending";
+}
+
+function addCashPassenger(busId, data){
+  const state = loadState();
+  const busState = state.buses[busId];
+
+  const seats = Number(data.seats);
+  if(!Number.isInteger(seats) || seats < 1){
+    return {ok:false, message:"Merci d’entrer un nombre de places valide."};
+  }
+
+  if(seats > remainingSeats(busState)){
+    return {ok:false, message:`Encaissement impossible : il reste seulement ${remainingSeats(busState)} place(s).`};
+  }
+
+  const fare = farePerSeat(busId, data.boarding);
+  if(fare === null){
+    return {ok:false, message:"Tarif non défini pour ce bus / point de montée."};
+  }
+
+  const def = getBusDef(busId);
+  const total = fare * seats;
+  const ref = `CASH-${def.label.replace("Bus ","B")}-${Math.floor(1000 + Math.random()*9000)}`;
+
+  busState.reservations.push({
+    id:uid(),
+    name:(data.name && data.name.trim()) ? data.name.trim() : "Passager cash",
+    phone:"",
+    boarding:data.boarding,
+    seats,
+    ref,
+    createdAt:nowLabel(),
+    farePerSeat:fare,
+    totalAmount:total,
+    paymentMethod:"Cash chauffeur",
+    paymentStatus:"Payé",
+    boarded:true
+  });
+
+  saveState(state);
+  return {ok:true, message:`Cash encaissé : ${formatMoney(total)} pour ${seats} place(s). Référence : ${ref}`};
+}
+
 window.G10TP = {
   BUS_DEFINITIONS, CAPACITY, loadState, saveState, resetAll, clearAllEmpty, getBusDef,
   totalReserved, remainingSeats, currentStatus, isTripFinished, getStepText, advanceTrip,
   resetTripOnly, resetBusFull, addReservation, sortedReservations, groupTotal,
-  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus
+  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus, formatMoney, fareInfo, farePerSeat, kmForFare, reservationTotal, busRevenue, addCashPassenger
 };
