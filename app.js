@@ -87,7 +87,10 @@ function defaultState(){
     buses[bus.id] = {
       stage:0,
       reservations:[],
-      log:[]
+      log:[],
+      actualTimes:{},
+      delayMinutes:0,
+      incidentLog:[]
     };
   });
 
@@ -112,8 +115,13 @@ function loadState(){
     const state = JSON.parse(raw);
     BUS_DEFINITIONS.forEach(bus => {
       if(!state.buses[bus.id]){
-        state.buses[bus.id] = {stage:0,reservations:[],log:[]};
+        state.buses[bus.id] = {stage:0,reservations:[],log:[],actualTimes:{},
+      delayMinutes:0,
+      incidentLog:[]};
       }
+      if(!state.buses[bus.id].actualTimes){ state.buses[bus.id].actualTimes = {}; }
+      if(state.buses[bus.id].delayMinutes === undefined){ state.buses[bus.id].delayMinutes = 0; }
+      if(!state.buses[bus.id].incidentLog){ state.buses[bus.id].incidentLog = []; }
     });
     return state;
   }catch(e){
@@ -140,6 +148,9 @@ function clearAllEmpty(){
     state.buses[id].reservations = [];
     state.buses[id].stage = 0;
     state.buses[id].log = [];
+    state.buses[id].actualTimes = {};
+    state.buses[id].delayMinutes = 0;
+    state.buses[id].incidentLog = [];
   });
   saveState(state);
   return state;
@@ -210,6 +221,7 @@ function advanceTrip(busId){
   if(busState.stage >= finalStage) return state;
 
   const step = getStepText(busDef, busState);
+  const timeText = recordActualTimeForStage(busDef, busState);
 
   const departingStop = currentBoardingStopForDeparture(busDef, busState);
   let absentCount = 0;
@@ -218,7 +230,7 @@ function advanceTrip(busId){
   }
 
   const absentText = absentCount > 0 ? ` · ${absentCount} place(s) restée(s) absente(s) à ${departingStop}` : "";
-  busState.log.unshift({time:realTime(), text:step.action + absentText});
+  busState.log.unshift({time:realTime(), text:step.action + absentText + (timeText ? " · " + timeText : "")});
   busState.stage += 1;
   saveState(state);
   return state;
@@ -228,6 +240,9 @@ function resetTripOnly(busId){
   const state = loadState();
   state.buses[busId].stage = 0;
   state.buses[busId].log = [];
+  state.buses[busId].actualTimes = {};
+  state.buses[busId].delayMinutes = 0;
+  state.buses[busId].incidentLog = [];
   saveState(state);
   return state;
 }
@@ -236,6 +251,9 @@ function resetBusFull(busId){
   const state = loadState();
   state.buses[busId].stage = 0;
   state.buses[busId].log = [];
+  state.buses[busId].actualTimes = {};
+  state.buses[busId].delayMinutes = 0;
+  state.buses[busId].incidentLog = [];
   state.buses[busId].reservations = [];
   saveState(state);
   return state;
@@ -368,7 +386,8 @@ function renderTimeline(target, busDef, busState){
       <div class="stop ${done ? "done" : ""} ${active ? "active" : ""} ${moving ? "moving" : ""}">
         <div class="dot"></div>
         <strong>${escapeHtml(stop.name)}</strong>
-        <span>${escapeHtml(stop.time)}</span>
+        <span class="plan-time">Prévu ${escapeHtml(stop.time)}</span>
+        ${actualTimeHtml(stop.name, busState)}
       </div>
     `;
   }).join("");
@@ -678,9 +697,149 @@ function boardingSummary(busDef, busState){
   return rows;
 }
 
+
+function ensureActualTimes(busState){
+  if(!busState.actualTimes) busState.actualTimes = {};
+  return busState.actualTimes;
+}
+
+function recordActualTimeForStage(busDef, busState){
+  const stage = busState.stage;
+  const actual = ensureActualTimes(busState);
+  const current = realTime();
+
+  if(stage === 0){
+    const stop = busDef.stops[0].name;
+    actual[stop] = actual[stop] || {};
+    actual[stop].departure = current;
+    return `Départ réel ${stop} : ${current}`;
+  }
+
+  if(stage % 2 === 1){
+    const stopIndex = Math.floor((stage + 1) / 2);
+    const stop = busDef.stops[stopIndex].name;
+    actual[stop] = actual[stop] || {};
+    actual[stop].arrival = current;
+    return `Arrivée réelle ${stop} : ${current}`;
+  }
+
+  if(stage % 2 === 0){
+    const stopIndex = Math.floor((stage + 1) / 2);
+    const stop = busDef.stops[stopIndex].name;
+    actual[stop] = actual[stop] || {};
+    actual[stop].departure = current;
+    return `Départ réel ${stop} : ${current}`;
+  }
+
+  return "";
+}
+
+function actualTimeHtml(stopName, busState){
+  const actual = ensureActualTimes(busState)[stopName] || {};
+  const rows = [];
+  if(actual.arrival) rows.push(`<span class="real-time">(arrivée réelle ${actual.arrival})</span>`);
+  if(actual.departure) rows.push(`<span class="real-time">(départ réel ${actual.departure})</span>`);
+  if(rows.length === 0) return `<span class="real-time empty">(réel —)</span>`;
+  return rows.join("");
+}
+
+
+function parsePlanTimeToMinutes(planTime){
+  const cleaned = String(planTime).replace("h", ":");
+  const [h, m] = cleaned.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function minutesToPlanTime(totalMinutes){
+  totalMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${String(h).padStart(2,"0")}h${String(m).padStart(2,"0")}`;
+}
+
+function addDelayToPlanTime(planTime, delay){
+  return minutesToPlanTime(parsePlanTimeToMinutes(planTime) + Number(delay || 0));
+}
+
+function eligibleBoardingStopsForAlerts(busDef, busState){
+  const stage = busState.stage;
+  const boardingStops = busDef.stops.slice(0, -1);
+
+  return boardingStops
+    .filter((stop, index) => {
+      if(index === 0) return stage === 0;
+      return stage <= index * 2;
+    })
+    .map(stop => stop.name);
+}
+
+function passengersToNotifyForIncident(busDef, busState){
+  const stops = eligibleBoardingStopsForAlerts(busDef, busState);
+  return busState.reservations.filter(r =>
+    stops.includes(r.boarding) && passengerStatusLabel(r) !== "Monté et payé"
+  );
+}
+
+function signalIncident(busId, data){
+  const state = loadState();
+  const busDef = getBusDef(busId);
+  const busState = state.buses[busId];
+
+  if(!busState.incidentLog) busState.incidentLog = [];
+  if(busState.delayMinutes === undefined) busState.delayMinutes = 0;
+
+  const delay = Number(data.delayMinutes || 0);
+  if(![15,30,45,60].includes(delay)){
+    return {ok:false, message:"Choisis une estimation de retard valide : 15, 30, 45 minutes ou 1 heure."};
+  }
+
+  const incidentType = data.incidentType || "Incident";
+  const note = (data.note || "").trim();
+  busState.delayMinutes += delay;
+
+  const notifyList = passengersToNotifyForIncident(busDef, busState);
+  const notifySeats = notifyList.reduce((sum, r) => sum + Number(r.seats || 0), 0);
+
+  const nextStops = eligibleBoardingStopsForAlerts(busDef, busState);
+  const updatedTimes = busDef.stops
+    .filter(stop => nextStops.includes(stop.name) || stop.name === terminalName(busDef))
+    .map(stop => `${stop.name} ${addDelayToPlanTime(stop.time, busState.delayMinutes)}`)
+    .join(" · ");
+
+  const entry = {
+    time: realTime(),
+    type: incidentType,
+    addedDelay: delay,
+    totalDelay: busState.delayMinutes,
+    note,
+    notifySeats,
+    notifyPassengers: notifyList.map(r => ({name:r.name, phone:r.phone || "", boarding:r.boarding, seats:r.seats})),
+    updatedTimes
+  };
+
+  busState.incidentLog.unshift(entry);
+  busState.log.unshift({
+    time: realTime(),
+    text: `${incidentType} · retard +${delay} min · retard cumulé ${busState.delayMinutes} min · ${notifySeats} place(s) à prévenir`
+  });
+
+  saveState(state);
+  return {
+    ok:true,
+    message:`Incident déclaré : ${incidentType}. Retard cumulé ${busState.delayMinutes} min. ${notifySeats} place(s) à prévenir.`,
+    notifySeats,
+    updatedTimes
+  };
+}
+
+function delayLabel(busState){
+  const delay = Number(busState.delayMinutes || 0);
+  return delay > 0 ? `Retard +${delay} min` : "Aucun retard déclaré";
+}
+
 window.G10TP = {
   BUS_DEFINITIONS, CAPACITY, loadState, saveState, resetAll, clearAllEmpty, getBusDef,
   totalReserved, remainingSeats, currentStatus, isTripFinished, getStepText, advanceTrip,
   resetTripOnly, resetBusFull, addReservation, sortedReservations, groupTotal,
-  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus, formatMoney, fareInfo, farePerSeat, kmForFare, reservationTotal, busRevenue, addCashPassenger, passengerStatusLabel, passengerStatusClass, setPassengerStatus, currentBoardingStopForDeparture, confirmAllAtCurrentStop, boardingSummary
+  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus, formatMoney, fareInfo, farePerSeat, kmForFare, reservationTotal, busRevenue, addCashPassenger, passengerStatusLabel, passengerStatusClass, setPassengerStatus, currentBoardingStopForDeparture, confirmAllAtCurrentStop, boardingSummary, actualTimeHtml, recordActualTimeForStage, signalIncident, delayLabel, passengersToNotifyForIncident, eligibleBoardingStopsForAlerts, addDelayToPlanTime
 };

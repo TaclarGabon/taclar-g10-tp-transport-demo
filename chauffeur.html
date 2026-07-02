@@ -370,7 +370,7 @@
               </div>
             </div>
 
-            <button class="secondary" id="confirmAllBtn">Mettre tous les passagers de cet arrêt en Monté/payé</button>
+            <button class="secondary" id="confirmAllBtn">Confirmer tout l’arrêt en Monté/payé</button>
             <button class="primary-action" id="driverBtn">Action</button>
             <button class="secondary" id="resetTripBtn">Réinitialiser la course seulement</button>
             <button class="danger" id="resetBusBtn">Réinitialiser ce bus à zéro</button>
@@ -378,7 +378,50 @@
             <div id="message" class="message"></div>
           </article>
 
-          <details class="accordion-card" open>
+          
+          <details class="accordion-card">
+            <summary>Incident / Retard</summary>
+            <div class="accordion-content incident-panel">
+              <h2>Signaler un incident</h2>
+              <p class="muted">Le chauffeur choisit la raison et l’estimation du retard. Le système calcule les passagers à prévenir.</p>
+
+              <div class="cash-grid">
+                <div>
+                  <label for="incidentType">Type d’incident</label>
+                  <select id="incidentType">
+                    <option value="Retard / trafic">Retard / trafic</option>
+                    <option value="Accident">Accident</option>
+                    <option value="Contrôle de police">Contrôle de police</option>
+                    <option value="Panne mécanique">Panne mécanique</option>
+                    <option value="Vandalisme / trouble">Vandalisme / trouble</option>
+                    <option value="Autre">Autre</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="delayMinutes">Estimation du retard</label>
+                  <select id="delayMinutes">
+                    <option value="15">15 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="45">45 minutes</option>
+                    <option value="60">1 heure</option>
+                  </select>
+                </div>
+
+                <div class="full">
+                  <label for="incidentNote">Note optionnelle</label>
+                  <input id="incidentNote" type="text" placeholder="Ex : bouchons avant La Poste" />
+                </div>
+              </div>
+
+              <div class="notify-box" id="notifyPreview">Aucun incident déclaré.</div>
+
+              <button class="warning" id="incidentBtn">Signaler incident et calculer les alertes</button>
+              <ul id="incidentLog" class="incident-log"></ul>
+            </div>
+          </details>
+
+<details class="accordion-card" open>
             <summary>Liste des passagers</summary>
             <div class="accordion-content">
 <h2>Liste des passagers</h2>
@@ -453,9 +496,13 @@
             .reduce((sum, r) => sum + Number(r.seats || 0), 0)
         : 0;
       document.getElementById("waitingAtStop").textContent = waitingAtStop;
+      const confirmAllBtn = document.getElementById("confirmAllBtn");
+      confirmAllBtn.disabled = !activeStop || waitingAtStop <= 0;
+      confirmAllBtn.classList.toggle("global-confirm-disabled", !activeStop || waitingAtStop <= 0);
 
       renderPassengerActions(busDef, busState);
       updateCashFare();
+      updateIncidentPanel();
 
       if(busState.log.length === 0){
         document.getElementById("tripLog").innerHTML = "<li>Aucun événement de trajet pour le moment.</li>";
@@ -515,8 +562,7 @@
 
         const status = G10TP.passengerStatusLabel(r);
         const notActiveStop = !activeStop || r.boarding !== activeStop;
-        const disabledBoarded = status === "Monté et payé" || notActiveStop ? "disabled" : "";
-        const disabledAbsent = status === "Absent" || notActiveStop ? "disabled" : "";
+        const disabledAction = notActiveStop ? "disabled" : "";
         const lockTitle = notActiveStop ? ` title="Action bloquée : point actif ${activeStop || 'aucun'}"` : "";
 
         html += `
@@ -527,10 +573,11 @@
             <td><span class="badge ${G10TP.passengerStatusClass(r)}">${escapeHtml(status)}</span></td>
             <td><span class="badge ${r.paymentMethod === "Cash chauffeur" ? "payment-cash" : "payment-paid"}">${G10TP.formatMoney(r.totalAmount || 0)}</span></td>
             <td>
-              <div class="passenger-actions">
-                <button class="btn-mini-ok" data-status="Monté et payé" data-passenger="${r.id}" ${disabledBoarded}${lockTitle}>Monté/payé</button>
-                <button class="btn-mini-absent" data-status="Absent" data-passenger="${r.id}" ${disabledAbsent}${lockTitle}>Absent</button>
-              </div>
+              <select class="action-select" data-passenger="${r.id}" ${disabledAction}${lockTitle}>
+                <option value="">Action</option>
+                <option value="Monté et payé" ${status === "Monté et payé" ? "selected" : ""}>Monté/payé</option>
+                <option value="Absent" ${status === "Absent" ? "selected" : ""}>Absent</option>
+              </select>
             </td>
           </tr>
         `;
@@ -539,9 +586,10 @@
       html += "</tbody></table>";
       reservationTable.innerHTML = html;
 
-      reservationTable.querySelectorAll("button[data-passenger]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          const result = G10TP.setPassengerStatus(currentBusId(), btn.dataset.passenger, btn.dataset.status);
+      reservationTable.querySelectorAll("select[data-passenger]").forEach(select => {
+        select.addEventListener("change", () => {
+          if(!select.value) return;
+          const result = G10TP.setPassengerStatus(currentBusId(), select.dataset.passenger, select.value);
           render();
           show(result.message, result.ok ? "ok" : "error");
         });
@@ -606,6 +654,55 @@
       const result = G10TP.confirmAllAtCurrentStop(currentBusId());
       render();
       show(result.message, result.ok ? "ok" : "error");
+    });
+
+
+    function updateIncidentPanel(){
+      const state = G10TP.loadState();
+      const busDef = G10TP.getBusDef(currentBusId());
+      const busState = state.buses[currentBusId()];
+      const notifyList = G10TP.passengersToNotifyForIncident(busDef, busState);
+      const notifySeats = notifyList.reduce((sum, r) => sum + Number(r.seats || 0), 0);
+
+      const delayText = G10TP.delayLabel(busState);
+      const updatedTerminal = busDef.stops
+        .map(stop => `${stop.name}: ${G10TP.addDelayToPlanTime(stop.time, busState.delayMinutes || 0)}`)
+        .join(" · ");
+
+      document.getElementById("notifyPreview").innerHTML = `
+        <strong>${delayText}</strong><br>
+        Passagers à prévenir maintenant : <strong>${notifySeats} place(s)</strong><br>
+        Heures ajustées : ${updatedTerminal}
+      `;
+
+      const log = busState.incidentLog || [];
+      const target = document.getElementById("incidentLog");
+      if(log.length === 0){
+        target.innerHTML = "<li>Aucun incident déclaré pour cette course.</li>";
+      } else {
+        target.innerHTML = log.map(item => `
+          <li>
+            <time>${item.time}</time>
+            <strong>${item.type}</strong> · +${item.addedDelay} min · total ${item.totalDelay} min<br>
+            ${item.notifySeats} place(s) à prévenir<br>
+            ${item.updatedTimes ? "Nouvelles heures : " + item.updatedTimes : ""}
+            ${item.note ? "<br>Note : " + item.note : ""}
+          </li>
+        `).join("");
+      }
+    }
+
+    document.getElementById("incidentBtn").addEventListener("click", () => {
+      const result = G10TP.signalIncident(currentBusId(), {
+        incidentType:document.getElementById("incidentType").value,
+        delayMinutes:Number(document.getElementById("delayMinutes").value),
+        note:document.getElementById("incidentNote").value
+      });
+      render();
+      show(result.message, result.ok ? "ok" : "error");
+      if(result.ok){
+        document.getElementById("incidentNote").value = "";
+      }
     });
 
     document.getElementById("driverBtn").addEventListener("click", () => {

@@ -74,6 +74,7 @@
             <div class="badge-row">
               <span class="${move.cls}">${move.short}</span>
               <span class="${occ.cls}">${occ.label}</span>
+              ${Number(b.delayMinutes || 0) > 0 ? `<span class="badge badge-full">Retard +${b.delayMinutes} min</span>` : ""}
             </div>
 
             <h3>${bus.label} ${remaining <= 0 ? "— Complet" : ""}</h3>
@@ -133,6 +134,7 @@
         <div class="badge-row">
           <span class="${move.cls}">${move.label}</span>
           <span class="${occ.cls}">${occ.label}</span>
+          ${Number(b.delayMinutes || 0) > 0 ? `<span class="badge badge-full">Retard +${b.delayMinutes} min</span>` : ""}
         </div>
 
         <div class="info-summary">
@@ -204,6 +206,23 @@
       });
 
       html += `</tbody></table>`;
+
+      if((b.incidentLog || []).length > 0){
+        html += `<h3 class="info-section-title">Incidents / retards</h3>
+          <table>
+            <thead><tr><th>Heure</th><th>Incident</th><th>Retard</th><th>À prévenir</th></tr></thead>
+            <tbody>
+              ${(b.incidentLog || []).map(item => `
+                <tr>
+                  <td>${item.time}</td>
+                  <td>${item.type}</td>
+                  <td>+${item.addedDelay} min / total ${item.totalDelay} min</td>
+                  <td>${item.notifySeats} place(s)</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>`;
+      }
 
       html += `<h3 class="info-section-title">Liste détaillée des passagers</h3>`;
       html += `<div id="modalPassengerTable"></div>`;

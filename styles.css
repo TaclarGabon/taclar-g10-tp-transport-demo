@@ -568,3 +568,91 @@ td{padding:11px 10px;border-bottom:1px solid var(--line);font-size:14px}
   .section-title,.cash-panel h2,.passenger-card h2{font-size:19px !important}
   .driver-action-grid,.stop-actions,.price-grid{grid-template-columns:1fr !important}
 }
+
+
+/* V10 — Action propre + heures réelles */
+.action-select{
+  min-width:138px;
+  padding:8px 10px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  font-size:12px;
+  font-weight:900;
+  background:#fff;
+}
+.action-select:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  background:#f1f4f5;
+}
+.real-time{
+  display:block;
+  margin-top:3px;
+  color:#087a3d !important;
+  font-size:11px !important;
+  font-weight:900;
+}
+.real-time.empty{
+  color:#8a9aa0 !important;
+  font-weight:700;
+}
+.stop span.plan-time{
+  display:block;
+  color:var(--muted);
+  font-size:12px;
+  margin-top:3px;
+}
+.global-confirm-disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+
+/* V11 — Incident / retard */
+.incident-panel{
+  background:linear-gradient(180deg,#fffdf4,#fff8dd);
+  border:1px solid #f1df9b;
+  border-radius:18px;
+  padding:16px;
+}
+.delay-badge{
+  display:inline-block;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#fff4de;
+  color:#a25d00;
+  font-weight:900;
+  font-size:12px;
+  margin-top:8px;
+}
+.delay-badge.active{
+  background:#ffe4e4;
+  color:#c02121;
+}
+.incident-log{
+  list-style:none;
+  padding:0;
+  margin:12px 0 0;
+  border-top:1px solid #f1df9b;
+}
+.incident-log li{
+  padding:10px 0;
+  border-bottom:1px solid #f1df9b;
+  font-size:13px;
+  line-height:1.35;
+}
+.incident-log time{
+  color:#8a6200;
+  font-weight:900;
+  margin-right:6px;
+}
+.notify-box{
+  margin-top:12px;
+  padding:12px;
+  border-radius:14px;
+  background:#fff;
+  border:1px solid #f1df9b;
+  color:#5d4300;
+  font-size:13px;
+  line-height:1.35;
+}

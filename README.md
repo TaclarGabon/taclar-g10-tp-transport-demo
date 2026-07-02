@@ -118,3 +118,24 @@ Corrections :
 - journal en accordéon ;
 - les boutons passagers Monté/payé sont bloqués si le passager n’est pas au point de montée actif ;
 - exemple : tant que le bus est à Owendo, les passagers de La Poste ne peuvent pas être confirmés.
+
+
+## Version 10 — Actions propres + heures réelles
+
+Corrections :
+- la colonne Action n’affiche plus deux boutons concurrents ;
+- elle utilise maintenant un choix déroulant : Monté/payé ou Absent ;
+- le bouton global de confirmation est désactivé lorsqu’il n’y a plus de point de montée actif ;
+- la frise affiche les heures prévues et les heures réelles : départ réel, arrivée réelle, etc.
+
+
+## Version 11 — Incident / Retard intégré
+
+Ajouts :
+- accordéon Incident / Retard dans l’interface chauffeur ;
+- type d’incident : Retard/trafic, Accident, Contrôle de police, Panne, Vandalisme/trouble, Autre ;
+- estimation : 15 min, 30 min, 45 min, 1 heure ;
+- retard cumulable ;
+- calcul des passagers à prévenir selon les points de montée non encore dépassés ;
+- affichage du retard dans Dispatch ;
+- détail des incidents dans Info passagers.
