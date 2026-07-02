@@ -67,3 +67,11 @@ Tarifs de démonstration intégrés :
 - Bus 4 : PK12 1 350 FCFA, PK5 900 FCFA, Nzeng-Ayong 750 FCFA.
 - Bus 5 : Akanda 1 900 FCFA, Alibandeng 550 FCFA, La Poste 300 FCFA.
 - Bus 6 : Centre-ville 1 900 FCFA, La Poste 1 800 FCFA, Alibandeng 1 350 FCFA.
+
+
+## Version 5 — Interface chauffeur réorganisée
+
+La page chauffeur a été réorganisée en mode poste de départ :
+- colonne gauche : choisir le bus, état du trajet, caisse, paiement cash station ;
+- colonne droite : action chauffeur, liste des passagers, journal ;
+- disposition plus proche d’un tableau de bord chauffeur pour tablette/ordinateur.

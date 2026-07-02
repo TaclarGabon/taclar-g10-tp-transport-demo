@@ -3,111 +3,378 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>G10 TP Transport — Chauffeur</title>
+  <title>G10 TP Transport — Interface Chauffeur</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    body{
+      background:
+        linear-gradient(rgba(255,255,255,.78), rgba(255,255,255,.78)),
+        repeating-linear-gradient(0deg, transparent 0 31px, rgba(0,0,0,.08) 32px),
+        repeating-linear-gradient(90deg, transparent 0 31px, rgba(0,0,0,.08) 32px),
+        linear-gradient(180deg,#fff7ef 0%,#eef7f7 18%,#edf7f6 100%);
+    }
+
+    .driver-shell{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 16px;
+      background: rgba(238, 250, 250, .72);
+      border: 1px solid rgba(0,140,145,.12);
+      border-radius: 26px;
+    }
+
+    .driver-main{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:16px;
+      align-items:start;
+    }
+
+    .driver-left,
+    .driver-right{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .compact-card{
+      margin-bottom:0;
+      padding:18px;
+      border-radius:20px;
+    }
+
+    .driver-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+
+    .driver-title{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .mini-logo{
+      width:46px;
+      height:46px;
+      border-radius:14px;
+      background:var(--yellow);
+      display:grid;
+      place-items:center;
+      font-size:24px;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .driver-title h1{
+      font-size:22px;
+      margin:0;
+    }
+
+    .driver-title p{
+      margin:2px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .top-nav{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+
+    .top-nav a{
+      text-decoration:none;
+      padding:8px 11px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      color:var(--teal-dark);
+      background:#fff;
+      border:1px solid var(--line);
+    }
+
+    .top-nav a.active{
+      color:#fff;
+      background:var(--teal);
+      border-color:var(--teal);
+    }
+
+    .section-title{
+      margin:0 0 12px;
+      font-size:22px;
+      letter-spacing:-.35px;
+    }
+
+    .route-card-title{
+      margin-top:12px;
+    }
+
+    .route-card-title h2{
+      margin:4px 0 6px;
+      font-size:19px;
+    }
+
+    .route-card-title .small{
+      margin:0;
+    }
+
+    .timeline{
+      margin:18px 0 14px;
+    }
+
+    .stats.compact-stats{
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .stats.compact-stats .stat{
+      min-height:72px;
+      padding:12px;
+    }
+
+    .stats.compact-stats .stat strong{
+      font-size:24px;
+    }
+
+    .driver-action-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin:12px 0;
+    }
+
+    .driver-action-box{
+      background:var(--soft);
+      border:1px solid var(--line);
+      border-radius:15px;
+      padding:12px;
+      min-height:76px;
+    }
+
+    .driver-action-box span{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      margin-bottom:5px;
+    }
+
+    .driver-action-box strong{
+      display:block;
+      font-size:16px;
+      color:var(--teal-dark);
+      line-height:1.2;
+    }
+
+    .primary-action{
+      background:var(--teal);
+      color:white;
+      margin-top:8px;
+    }
+
+    .cash-panel{
+      margin-bottom:0;
+    }
+
+    .cash-panel h2{
+      font-size:22px;
+    }
+
+    .cash-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .cash-grid .full{
+      grid-column:1/-1;
+    }
+
+    .cash-grid input,
+    .cash-grid select{
+      padding:12px;
+      font-size:14px;
+    }
+
+    .price-box{
+      padding:13px;
+      border-radius:15px;
+    }
+
+    .price-box strong{
+      font-size:24px;
+    }
+
+    .passenger-card{
+      min-height: 500px;
+    }
+
+    .passenger-card table{
+      font-size:13px;
+    }
+
+    .passenger-card th,
+    .passenger-card td{
+      padding:10px 9px;
+      font-size:13px;
+    }
+
+    .message{
+      margin-top:10px;
+    }
+
+    @media(max-width: 980px){
+      .driver-main{
+        grid-template-columns:1fr;
+      }
+      .passenger-card{
+        min-height:auto;
+      }
+    }
+
+    @media(max-width: 640px){
+      .driver-shell{
+        padding:10px;
+        border-radius:18px;
+      }
+      .compact-card{
+        padding:15px;
+      }
+      .driver-action-grid,
+      .cash-grid,
+      .stats.compact-stats{
+        grid-template-columns:1fr;
+      }
+      .top-nav{
+        justify-content:flex-start;
+      }
+    }
+  </style>
 </head>
 <body>
   <main class="page">
-    <section class="topbar">
-      <div class="brand">
-        <div class="logo">🚌</div>
-        <div>
-          <h1>Interface Chauffeur</h1>
-          <p>Liste passagers et suivi de course</p>
+    <section class="driver-shell">
+      <div class="driver-top">
+        <div class="driver-title">
+          <div class="mini-logo">🚌</div>
+          <div>
+            <h1>Interface Chauffeur</h1>
+            <p>Liste passagers et suivi de course</p>
+          </div>
         </div>
-      </div>
-      <nav class="nav">
-        <a href="index.html">Accueil</a>
-        <a href="client.html">Client</a>
-        <a class="active" href="chauffeur.html">Chauffeur</a>
-        <a href="dispatch.html">Dispatch</a>
-      </nav>
-    </section>
 
-    <section class="grid">
-      <div>
-        <article class="card">
-          <h2>Choisir le bus</h2>
-          <label for="busSelect">Bus chauffeur</label>
-          <select id="busSelect"></select>
-          <div id="busInfo" style="margin-top:16px"></div>
-          <div id="timeline"></div>
-
-          <div class="stats">
-            <div class="stat"><span>Capacité</span><strong>24</strong></div>
-            <div class="stat"><span>Réservées</span><strong id="reservedTotal">0</strong></div>
-            <div class="stat"><span>Restantes</span><strong id="remainingTotal">24</strong></div>
-          </div>
-          <div class="price-box">
-            <span>Caisse de ce bus</span>
-            <strong id="busRevenue">0 FCFA</strong>
-          </div>
-        </article>
-
-        <article class="card">
-          <h2>Action chauffeur</h2>
-          <p class="muted">Un seul bouton principal, étape par étape.</p>
-          <div class="grid">
-            <div class="bus-card">
-              <span class="small">Étape actuelle</span>
-              <h3 id="currentStep">—</h3>
-            </div>
-            <div class="bus-card">
-              <span class="small">Prochaine action</span>
-              <h3 id="nextAction">—</h3>
-            </div>
-          </div>
-          <button class="driver-btn" id="driverBtn">Action</button>
-          <button class="secondary" id="resetTripBtn">Réinitialiser la course seulement</button>
-          <button class="danger" id="resetBusBtn">Réinitialiser ce bus à zéro</button>
-          <div id="message" class="message"></div>
-        </article>
-
-        <article class="card cash-panel">
-          <h2>Paiement cash station</h2>
-          <p class="muted">Pour un client qui arrive sans réservation. Le chauffeur encaisse et ajoute directement le passager au bus.</p>
-
-          <div class="form-grid">
-            <div class="full">
-              <label for="cashName">Nom ou note</label>
-              <input id="cashName" type="text" placeholder="Ex : Passager cash / Famille 2 places" />
-            </div>
-            <div>
-              <label for="cashBoarding">Point de montée</label>
-              <select id="cashBoarding"></select>
-            </div>
-            <div>
-              <label for="cashSeats">Nombre de places</label>
-              <input id="cashSeats" type="number" min="1" max="24" value="1" />
-            </div>
-          </div>
-
-          <div class="price-grid">
-            <div class="price-box">
-              <span>Prix par place</span>
-              <strong id="cashFarePerSeat">—</strong>
-            </div>
-            <div class="price-box">
-              <span>Total cash à encaisser</span>
-              <strong id="cashFareTotal">—</strong>
-            </div>
-          </div>
-          <div class="tariff-note" id="cashFareNote">Tarif calculé à 60 FCFA/km, minimum 300 FCFA.</div>
-
-          <button class="primary" id="cashBtn">Encaisser cash et ajouter au bus</button>
-        </article>
-
-        <article class="card">
-          <h2>Journal</h2>
-          <ul id="tripLog" class="log"></ul>
-        </article>
+        <nav class="top-nav">
+          <a href="index.html">Accueil</a>
+          <a href="client.html">Client</a>
+          <a class="active" href="chauffeur.html">Chauffeur</a>
+          <a href="dispatch.html">Dispatch</a>
+        </nav>
       </div>
 
-      <article class="card">
-        <h2>Liste des passagers</h2>
-        <p class="muted">Les passagers sont triés automatiquement par point de montée.</p>
-        <div id="reservationTable"></div>
-      </article>
+      <section class="driver-main">
+        <div class="driver-left">
+          <article class="card compact-card">
+            <h2 class="section-title">Choisir le bus</h2>
+
+            <label for="busSelect">Bus chauffeur</label>
+            <select id="busSelect"></select>
+
+            <div id="busInfo" class="route-card-title"></div>
+
+            <div id="timeline"></div>
+
+            <div class="stats compact-stats">
+              <div class="stat"><span>Capacité</span><strong>24</strong></div>
+              <div class="stat"><span>Réservées</span><strong id="reservedTotal">0</strong></div>
+              <div class="stat"><span>Restantes</span><strong id="remainingTotal">24</strong></div>
+            </div>
+
+            <div class="price-box">
+              <span>Caisse de ce bus</span>
+              <strong id="busRevenue">0 FCFA</strong>
+            </div>
+          </article>
+
+          <article class="card compact-card cash-panel">
+            <h2>Paiement cash station</h2>
+            <p class="muted">Pour un client qui arrive sans réservation. Le chauffeur encaisse et ajoute directement le passager au bus.</p>
+
+            <div class="cash-grid">
+              <div class="full">
+                <label for="cashName">Nom ou note</label>
+                <input id="cashName" type="text" placeholder="Ex : Passager cash / Famille 2 places" />
+              </div>
+
+              <div>
+                <label for="cashBoarding">Point de montée</label>
+                <select id="cashBoarding"></select>
+              </div>
+
+              <div>
+                <label for="cashSeats">Nombre de places</label>
+                <input id="cashSeats" type="number" min="1" max="24" value="1" />
+              </div>
+            </div>
+
+            <div class="price-grid">
+              <div class="price-box">
+                <span>Prix par place</span>
+                <strong id="cashFarePerSeat">—</strong>
+              </div>
+              <div class="price-box">
+                <span>Total cash à encaisser</span>
+                <strong id="cashFareTotal">—</strong>
+              </div>
+            </div>
+
+            <div class="tariff-note" id="cashFareNote">Tarif calculé à 60 FCFA/km, minimum 300 FCFA.</div>
+
+            <button class="primary" id="cashBtn">Encaisser cash et ajouter au bus</button>
+          </article>
+        </div>
+
+        <div class="driver-right">
+          <article class="card compact-card">
+            <h2 class="section-title">Action chauffeur</h2>
+            <p class="muted">Un seul bouton principal, étape par étape.</p>
+
+            <div class="driver-action-grid">
+              <div class="driver-action-box">
+                <span>Étape actuelle</span>
+                <strong id="currentStep">—</strong>
+              </div>
+              <div class="driver-action-box">
+                <span>Prochaine action</span>
+                <strong id="nextAction">—</strong>
+              </div>
+            </div>
+
+            <button class="primary-action" id="driverBtn">Action</button>
+            <button class="secondary" id="resetTripBtn">Réinitialiser la course seulement</button>
+            <button class="danger" id="resetBusBtn">Réinitialiser ce bus à zéro</button>
+
+            <div id="message" class="message"></div>
+          </article>
+
+          <article class="card compact-card passenger-card">
+            <h2>Liste des passagers</h2>
+            <p class="muted">Les passagers sont triés automatiquement par point de montée.</p>
+            <div id="reservationTable"></div>
+          </article>
+
+          <article class="card compact-card">
+            <h2>Journal</h2>
+            <ul id="tripLog" class="log"></ul>
+          </article>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -133,9 +400,10 @@
 
       busInfo.innerHTML = `
         <span class="${status.cls}">${status.label}</span>
-        <h3>${busDef.label} — ${busDef.routeName}</h3>
-        <p class="muted">${busDef.axis} · Départ ${busDef.startTime}</p>
+        <h2>${busDef.label} — ${busDef.routeName}</h2>
+        <p class="small">${busDef.axis} · Départ ${busDef.startTime}</p>
       `;
+
       const previousCashBoarding = cashBoarding.value;
       G10TP.fillBoardingSelect(cashBoarding, busDef);
       if(previousCashBoarding){
@@ -147,12 +415,13 @@
       document.getElementById("reservedTotal").textContent = G10TP.totalReserved(busState);
       document.getElementById("remainingTotal").textContent = G10TP.remainingSeats(busState);
       document.getElementById("busRevenue").textContent = G10TP.formatMoney(G10TP.busRevenue(busState));
+
       document.getElementById("currentStep").textContent = step.current;
       document.getElementById("nextAction").textContent = step.action;
       document.getElementById("driverBtn").textContent = step.action;
       document.getElementById("driverBtn").disabled = G10TP.isTripFinished(busDef, busState);
-      G10TP.renderReservationTable(reservationTable, busDef, busState);
 
+      G10TP.renderReservationTable(reservationTable, busDef, busState);
       updateCashFare();
 
       if(busState.log.length === 0){
@@ -167,16 +436,17 @@
       msg.className = "message " + (type === "error" ? "err" : type === "info" ? "info" : "ok");
     }
 
-
     function updateCashFare(){
       const seats = parseInt(document.getElementById("cashSeats").value, 10) || 0;
       const fare = G10TP.farePerSeat(currentBusId(), cashBoarding.value);
       const km = G10TP.kmForFare(currentBusId(), cashBoarding.value);
+
       document.getElementById("cashFarePerSeat").textContent = G10TP.formatMoney(fare);
       document.getElementById("cashFareTotal").textContent = fare === null ? "Tarif à confirmer" : G10TP.formatMoney(fare * seats);
       document.getElementById("cashFareNote").textContent = fare === null
         ? "Tarif à confirmer après validation de la distance."
         : `${km} km retenu(s) × 60 FCFA/km, avec minimum/arrondi commercial.`;
+
       document.getElementById("cashBtn").disabled = fare === null;
     }
 
@@ -186,8 +456,10 @@
         boarding:cashBoarding.value,
         seats:parseInt(document.getElementById("cashSeats").value, 10)
       });
+
       render();
       show(result.message, result.ok ? "ok" : "error");
+
       if(result.ok){
         document.getElementById("cashName").value = "";
         document.getElementById("cashSeats").value = 1;
