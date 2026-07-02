@@ -93,8 +93,8 @@ function defaultState(){
 
   // quelques données démo dans Bus 1 pour montrer la liste chauffeur
   buses.bus1.reservations = [
-    {id:uid(), name:"MJK", phone:"", boarding:"Owendo", seats:1, ref:"G10-B1-1001", createdAt:nowLabel(), farePerSeat:1000, totalAmount:1000, paymentMethod:"Réservation app", paymentStatus:"Payé"},
-    {id:uid(), name:"NANCY", phone:"", boarding:"Owendo", seats:1, ref:"G10-B1-1002", createdAt:nowLabel(), farePerSeat:1000, totalAmount:1000, paymentMethod:"Réservation app", paymentStatus:"Payé"},
+    {id:uid(), name:"MJK", phone:"", boarding:"Owendo", seats:1, ref:"G10-B1-1001", createdAt:nowLabel(), farePerSeat:1000, totalAmount:1000, paymentMethod:"Réservation app", paymentStatus:"Payé", boardingStatus:"En attente"},
+    {id:uid(), name:"NANCY", phone:"", boarding:"Owendo", seats:1, ref:"G10-B1-1002", createdAt:nowLabel(), farePerSeat:1000, totalAmount:1000, paymentMethod:"Réservation app", paymentStatus:"Payé", boardingStatus:"En attente"},
     {id:uid(), name:"EDAN", phone:"", boarding:"La Poste", seats:4, ref:"G10-B1-1003", createdAt:nowLabel(), farePerSeat:300, totalAmount:1200, paymentMethod:"Réservation app", paymentStatus:"Payé"}
   ];
 
@@ -210,7 +210,15 @@ function advanceTrip(busId){
   if(busState.stage >= finalStage) return state;
 
   const step = getStepText(busDef, busState);
-  busState.log.unshift({time:realTime(), text:step.action});
+
+  const departingStop = currentBoardingStopForDeparture(busDef, busState);
+  let absentCount = 0;
+  if(departingStop && step.action.toLowerCase().startsWith("départ")){
+    absentCount = markPendingAbsentAtStop(busState, departingStop);
+  }
+
+  const absentText = absentCount > 0 ? ` · ${absentCount} place(s) marquée(s) absente(s) à ${departingStop}` : "";
+  busState.log.unshift({time:realTime(), text:step.action + absentText});
   busState.stage += 1;
   saveState(state);
   return state;
@@ -270,7 +278,8 @@ function addReservation(busId, data){
     farePerSeat:fare,
     totalAmount:total,
     paymentMethod:"Réservation app",
-    paymentStatus:"Payé"
+    paymentStatus:"Payé",
+    boardingStatus:"En attente"
   });
   saveState(state);
   return {ok:true, message:`Réservation confirmée : ${seats} place(s) depuis ${data.boarding}. Montant payé : ${formatMoney(total)}. Référence : ${ref}`};
@@ -298,7 +307,7 @@ function renderReservationTable(target, busDef, busState){
   const sorted = sortedReservations(busDef, busState);
   let html = `
     <table>
-      <thead><tr><th>Nom</th><th>Montée</th><th>Places</th><th>Paiement</th><th>Réf.</th></tr></thead>
+      <thead><tr><th>Nom</th><th>Montée</th><th>Places</th><th>Statut</th><th>Paiement</th><th>Réf.</th></tr></thead>
       <tbody>
   `;
   let currentGroup = "";
@@ -307,7 +316,7 @@ function renderReservationTable(target, busDef, busState){
       currentGroup = r.boarding;
       html += `
         <tr class="group-row">
-          <td colspan="5">📍 Montée ${currentGroup} — ${groupTotal(busState, currentGroup)} place(s)</td>
+          <td colspan="6">📍 Montée ${currentGroup} — ${groupTotal(busState, currentGroup)} place(s)</td>
         </tr>
       `;
     }
@@ -315,6 +324,7 @@ function renderReservationTable(target, busDef, busState){
       <td>${escapeHtml(r.name)}</td>
       <td>${escapeHtml(r.boarding)}</td>
       <td>${r.seats}</td>
+      <td><span class="badge ${passengerStatusClass(r)}">${escapeHtml(passengerStatusLabel(r))}</span></td>
       <td><span class="badge ${paymentBadgeClass(r)}">${formatMoney(r.totalAmount || 0)}</span></td>
       <td>${escapeHtml(r.ref)}</td>
     </tr>`;
@@ -573,6 +583,7 @@ function addCashPassenger(busId, data){
     totalAmount:total,
     paymentMethod:"Cash chauffeur",
     paymentStatus:"Payé",
+    boardingStatus:"Monté et payé",
     boarded:true
   });
 
@@ -580,9 +591,93 @@ function addCashPassenger(busId, data){
   return {ok:true, message:`Cash encaissé : ${formatMoney(total)} pour ${seats} place(s). Référence : ${ref}`};
 }
 
+
+function passengerStatusLabel(r){
+  return r.boardingStatus || (r.boarded ? "Monté et payé" : "En attente");
+}
+
+function passengerStatusClass(r){
+  const s = passengerStatusLabel(r);
+  if(s === "Monté et payé") return "status-boarded";
+  if(s === "Monté et scanné") return "status-scanned";
+  if(s === "Absent") return "status-absent";
+  return "status-wait";
+}
+
+function setPassengerStatus(busId, passengerId, status){
+  const state = loadState();
+  const busState = state.buses[busId];
+  const p = busState.reservations.find(r => r.id === passengerId);
+  if(!p) return {ok:false, message:"Passager introuvable."};
+
+  p.boardingStatus = status;
+  p.boarded = status === "Monté et payé" || status === "Monté et scanné";
+
+  saveState(state);
+  return {ok:true, message:`Statut mis à jour : ${p.name} — ${status}.`};
+}
+
+function currentBoardingStopForDeparture(busDef, busState){
+  const stage = busState.stage;
+  if(stage === 0) return busDef.stops[0].name;
+
+  if(stage % 2 === 0){
+    const stopIndex = Math.floor((stage + 1) / 2);
+    if(stopIndex < busDef.stops.length - 1) return busDef.stops[stopIndex].name;
+  }
+
+  return null;
+}
+
+function confirmAllAtCurrentStop(busId){
+  const state = loadState();
+  const busDef = getBusDef(busId);
+  const busState = state.buses[busId];
+  const stopName = currentBoardingStopForDeparture(busDef, busState);
+  if(!stopName) return {ok:false, message:"Aucun point de montée actif à confirmer."};
+
+  let count = 0;
+  busState.reservations.forEach(r => {
+    if(r.boarding === stopName && passengerStatusLabel(r) === "En attente"){
+      r.boardingStatus = "Monté et payé";
+      r.boarded = true;
+      count += Number(r.seats || 0);
+    }
+  });
+
+  saveState(state);
+  return {ok:true, message:`${count} place(s) confirmée(s) comme montées à ${stopName}.`};
+}
+
+function markPendingAbsentAtStop(busState, stopName){
+  let count = 0;
+  busState.reservations.forEach(r => {
+    if(r.boarding === stopName && passengerStatusLabel(r) === "En attente"){
+      r.boardingStatus = "Absent";
+      r.boarded = false;
+      count += Number(r.seats || 0);
+    }
+  });
+  return count;
+}
+
+function boardingSummary(busDef, busState){
+  const rows = busDef.stops.slice(0,-1).map(stop => {
+    const list = busState.reservations.filter(r => r.boarding === stop.name);
+    return {
+      stop: stop.name,
+      total: list.reduce((sum,r)=>sum+Number(r.seats||0),0),
+      boarded: list.filter(r => passengerStatusLabel(r) === "Monté et payé" || passengerStatusLabel(r) === "Monté et scanné").reduce((sum,r)=>sum+Number(r.seats||0),0),
+      waiting: list.filter(r => passengerStatusLabel(r) === "En attente").reduce((sum,r)=>sum+Number(r.seats||0),0),
+      absent: list.filter(r => passengerStatusLabel(r) === "Absent").reduce((sum,r)=>sum+Number(r.seats||0),0)
+    };
+  });
+  return rows;
+}
+
 window.G10TP = {
   BUS_DEFINITIONS, CAPACITY, loadState, saveState, resetAll, clearAllEmpty, getBusDef,
   totalReserved, remainingSeats, currentStatus, isTripFinished, getStepText, advanceTrip,
   resetTripOnly, resetBusFull, addReservation, sortedReservations, groupTotal,
-  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus, formatMoney, fareInfo, farePerSeat, kmForFare, reservationTotal, busRevenue, addCashPassenger
+  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus, formatMoney, fareInfo, farePerSeat, kmForFare, reservationTotal, busRevenue, addCashPassenger, passengerStatusLabel, passengerStatusClass, setPassengerStatus, currentBoardingStopForDeparture, confirmAllAtCurrentStop, boardingSummary
 };

@@ -26,7 +26,9 @@
 
     <article class="card">
       <h2>Vue d’ensemble</h2>
-      <p class="muted">Cette page permet de voir les bus, leurs statuts et les places disponibles.</p>
+      <p class="muted">
+        Cette page permet de voir les bus, leurs statuts, les places disponibles et le détail des passagers par point de montée.
+      </p>
       <div class="grid-3" id="busCards"></div>
       <button class="secondary" id="refreshBtn">Actualiser</button>
       <button class="danger" id="resetEmptyBtn">Réinitialiser toute la démo à zéro</button>
@@ -35,10 +37,28 @@
     </article>
   </main>
 
+  <div class="modal-backdrop" id="infoModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h2 id="modalTitle">Détail bus</h2>
+          <p class="muted" id="modalSubtitle">Liste des passagers</p>
+        </div>
+        <button class="close-btn" id="closeModalBtn">Fermer</button>
+      </div>
+
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
   <script src="app.js"></script>
   <script>
     const cards = document.getElementById("busCards");
     const msg = document.getElementById("message");
+    const modal = document.getElementById("infoModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSubtitle = document.getElementById("modalSubtitle");
+    const modalContent = document.getElementById("modalContent");
 
     function render(){
       const state = G10TP.loadState();
@@ -76,14 +96,142 @@
                 <strong>${remaining}</strong>
               </div>
             </div>
+
+            <div class="price-box">
+              <span>Total encaissé</span>
+              <strong>${G10TP.formatMoney(G10TP.busRevenue(b))}</strong>
+            </div>
+
+            <div class="dispatch-card-actions">
+              <button class="info-btn" data-bus-id="${bus.id}">Info passagers</button>
+            </div>
           </div>
         `;
       }).join("");
+
+      document.querySelectorAll(".info-btn").forEach(btn => {
+        btn.addEventListener("click", () => openInfo(btn.dataset.busId));
+      });
+    }
+
+    function openInfo(busId){
+      const state = G10TP.loadState();
+      const bus = G10TP.getBusDef(busId);
+      const b = state.buses[busId];
+      const move = G10TP.movementStatus(bus, b);
+      const occ = G10TP.occupancyStatus(b);
+
+      modalTitle.textContent = `${bus.label} — Détail passagers`;
+      modalSubtitle.textContent = `${bus.axis} · ${bus.routeName} · ${move.label}`;
+
+      const terminal = G10TP.terminalName(bus);
+      const reserved = G10TP.totalReserved(b);
+      const remaining = G10TP.remainingSeats(b);
+      const revenue = G10TP.busRevenue(b);
+
+      let html = `
+        <div class="badge-row">
+          <span class="${move.cls}">${move.label}</span>
+          <span class="${occ.cls}">${occ.label}</span>
+        </div>
+
+        <div class="info-summary">
+          <div class="stat">
+            <span>Places réservées</span>
+            <strong>${reserved}</strong>
+          </div>
+          <div class="stat">
+            <span>Places restantes</span>
+            <strong>${remaining}</strong>
+          </div>
+          <div class="stat">
+            <span>Total encaissé</span>
+            <strong style="font-size:22px">${G10TP.formatMoney(revenue)}</strong>
+          </div>
+        </div>
+      `;
+
+      if(b.reservations.length === 0){
+        html += `<div class="empty">Aucun passager enregistré pour ce bus.</div>`;
+        modalContent.innerHTML = html;
+        modal.classList.add("open");
+        return;
+      }
+
+      const statusCounts = {
+        waiting: b.reservations.filter(r => G10TP.passengerStatusLabel(r) === "En attente").reduce((sum,r)=>sum+Number(r.seats||0),0),
+        boarded: b.reservations.filter(r => G10TP.passengerStatusLabel(r) === "Monté et payé" || G10TP.passengerStatusLabel(r) === "Monté et scanné").reduce((sum,r)=>sum+Number(r.seats||0),0),
+        absent: b.reservations.filter(r => G10TP.passengerStatusLabel(r) === "Absent").reduce((sum,r)=>sum+Number(r.seats||0),0)
+      };
+
+      html += `
+        <h3 class="info-section-title">Résumé des statuts</h3>
+        <div class="info-summary">
+          <div class="stat"><span>En attente</span><strong>${statusCounts.waiting}</strong></div>
+          <div class="stat"><span>Montés</span><strong>${statusCounts.boarded}</strong></div>
+          <div class="stat"><span>Absents</span><strong>${statusCounts.absent}</strong></div>
+        </div>
+      `;
+
+      const boardingStops = bus.stops.slice(0, -1).map(s => s.name);
+      html += `<h3 class="info-section-title">Résumé par point de montée</h3>`;
+      html += `<table>
+        <thead>
+          <tr>
+            <th>Point de montée</th>
+            <th>Destination</th>
+            <th>Places</th>
+            <th>Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+      `;
+
+      boardingStops.forEach(stopName => {
+        const list = b.reservations.filter(r => r.boarding === stopName);
+        const seats = list.reduce((sum, r) => sum + Number(r.seats || 0), 0);
+        const amount = list.reduce((sum, r) => sum + Number(r.totalAmount || 0), 0);
+
+        if(seats > 0){
+          html += `
+            <tr>
+              <td>${escapeHtml(stopName)}</td>
+              <td>${escapeHtml(terminal)}</td>
+              <td>${seats}</td>
+              <td><span class="badge payment-paid">${G10TP.formatMoney(amount)}</span></td>
+            </tr>
+          `;
+        }
+      });
+
+      html += `</tbody></table>`;
+
+      html += `<h3 class="info-section-title">Liste détaillée des passagers</h3>`;
+      html += `<div id="modalPassengerTable"></div>`;
+
+      modalContent.innerHTML = html;
+      const tableTarget = document.getElementById("modalPassengerTable");
+      G10TP.renderReservationTable(tableTarget, bus, b);
+
+      modal.classList.add("open");
+    }
+
+    function closeModal(){
+      modal.classList.remove("open");
     }
 
     function show(text){
       msg.textContent = text;
       msg.className = "message ok";
+    }
+
+    function escapeHtml(value){
+      return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
 
     document.getElementById("refreshBtn").addEventListener("click", render);
@@ -96,6 +244,14 @@
       G10TP.resetAll();
       render();
       show("Démo réinitialisée avec exemples sur Bus 1.");
+    });
+
+    document.getElementById("closeModalBtn").addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => {
+      if(e.target === modal) closeModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if(e.key === "Escape") closeModal();
     });
 
     render();

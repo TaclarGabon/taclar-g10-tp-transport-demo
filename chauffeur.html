@@ -356,6 +356,18 @@
               </div>
             </div>
 
+            <div class="stop-actions">
+              <div class="stop-action-box">
+                <span>Point de montée actif</span>
+                <strong id="activeBoardingStop">—</strong>
+              </div>
+              <div class="stop-action-box">
+                <span>En attente à cet arrêt</span>
+                <strong id="waitingAtStop">0</strong>
+              </div>
+            </div>
+
+            <button class="secondary" id="confirmAllBtn">Confirmer tous les passagers de cet arrêt</button>
             <button class="primary-action" id="driverBtn">Action</button>
             <button class="secondary" id="resetTripBtn">Réinitialiser la course seulement</button>
             <button class="danger" id="resetBusBtn">Réinitialiser ce bus à zéro</button>
@@ -421,7 +433,16 @@
       document.getElementById("driverBtn").textContent = step.action;
       document.getElementById("driverBtn").disabled = G10TP.isTripFinished(busDef, busState);
 
-      G10TP.renderReservationTable(reservationTable, busDef, busState);
+      const activeStop = G10TP.currentBoardingStopForDeparture(busDef, busState);
+      document.getElementById("activeBoardingStop").textContent = activeStop || "Aucun";
+      const waitingAtStop = activeStop
+        ? busState.reservations
+            .filter(r => r.boarding === activeStop && G10TP.passengerStatusLabel(r) === "En attente")
+            .reduce((sum, r) => sum + Number(r.seats || 0), 0)
+        : 0;
+      document.getElementById("waitingAtStop").textContent = waitingAtStop;
+
+      renderPassengerActions(busDef, busState);
       updateCashFare();
 
       if(busState.log.length === 0){
@@ -434,6 +455,93 @@
     function show(text, type="ok"){
       msg.textContent = text;
       msg.className = "message " + (type === "error" ? "err" : type === "info" ? "info" : "ok");
+    }
+
+
+    function renderPassengerActions(busDef, busState){
+      if(busState.reservations.length === 0){
+        reservationTable.innerHTML = '<div class="empty">Aucun passager pour ce bus.</div>';
+        return;
+      }
+
+      const sorted = G10TP.sortedReservations
+        ? G10TP.sortedReservations(busDef, busState)
+        : [...busState.reservations];
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Montée</th>
+              <th>Places</th>
+              <th>Statut</th>
+              <th>Paiement</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      let currentGroup = "";
+
+      sorted.forEach(r => {
+        if(r.boarding !== currentGroup){
+          currentGroup = r.boarding;
+          const groupSeats = busState.reservations
+            .filter(x => x.boarding === currentGroup)
+            .reduce((sum, x) => sum + Number(x.seats || 0), 0);
+
+          html += `
+            <tr class="group-row">
+              <td colspan="6">📍 Montée ${currentGroup} — ${groupSeats} place(s)</td>
+            </tr>
+          `;
+        }
+
+        const status = G10TP.passengerStatusLabel(r);
+        const disabledBoarded = status === "Monté et payé" ? "disabled" : "";
+        const disabledScanned = status === "Monté et scanné" ? "disabled" : "";
+        const disabledAbsent = status === "Absent" ? "disabled" : "";
+
+        html += `
+          <tr>
+            <td>${escapeHtml(r.name)}</td>
+            <td>${escapeHtml(r.boarding)}</td>
+            <td>${r.seats}</td>
+            <td><span class="badge ${G10TP.passengerStatusClass(r)}">${escapeHtml(status)}</span></td>
+            <td><span class="badge ${r.paymentMethod === "Cash chauffeur" ? "payment-cash" : "payment-paid"}">${G10TP.formatMoney(r.totalAmount || 0)}</span></td>
+            <td>
+              <div class="passenger-actions">
+                <button class="btn-mini-ok" data-status="Monté et payé" data-passenger="${r.id}" ${disabledBoarded}>Monté/payé</button>
+                <button class="btn-mini-scan" data-status="Monté et scanné" data-passenger="${r.id}" ${disabledScanned}>Scanné</button>
+                <button class="btn-mini-absent" data-status="Absent" data-passenger="${r.id}" ${disabledAbsent}>Absent</button>
+                <button class="btn-mini-reset" data-status="En attente" data-passenger="${r.id}">Attente</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += "</tbody></table>";
+      reservationTable.innerHTML = html;
+
+      reservationTable.querySelectorAll("button[data-passenger]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const result = G10TP.setPassengerStatus(currentBusId(), btn.dataset.passenger, btn.dataset.status);
+          render();
+          show(result.message, result.ok ? "ok" : "error");
+        });
+      });
+    }
+
+    function escapeHtml(value){
+      return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
 
     function updateCashFare(){
@@ -468,6 +576,12 @@
 
     document.getElementById("cashSeats").addEventListener("input", updateCashFare);
     cashBoarding.addEventListener("change", updateCashFare);
+
+    document.getElementById("confirmAllBtn").addEventListener("click", () => {
+      const result = G10TP.confirmAllAtCurrentStop(currentBusId());
+      render();
+      show(result.message, result.ok ? "ok" : "error");
+    });
 
     document.getElementById("driverBtn").addEventListener("click", () => {
       G10TP.advanceTrip(currentBusId());

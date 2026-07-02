@@ -75,3 +75,25 @@ La page chauffeur a été réorganisée en mode poste de départ :
 - colonne gauche : choisir le bus, état du trajet, caisse, paiement cash station ;
 - colonne droite : action chauffeur, liste des passagers, journal ;
 - disposition plus proche d’un tableau de bord chauffeur pour tablette/ordinateur.
+
+
+## Version 6 — Info passagers dans Dispatch
+
+Ajout dans la vue Dispatch :
+- bouton "Info passagers" sur chaque carte bus ;
+- ouverture d’une fenêtre de détail ;
+- résumé par point de montée ;
+- destination finale du bus ;
+- nombre de places par point de montée ;
+- montant encaissé par point de montée ;
+- liste détaillée des passagers comme côté chauffeur.
+
+
+## Version 7 — Statuts de montée passagers
+
+Ajouts :
+- statut passager : En attente, Monté et payé, Monté et scanné, Absent ;
+- boutons côté chauffeur pour confirmer une montée, scanner ou marquer absent ;
+- bouton "Confirmer tous les passagers de cet arrêt" ;
+- au moment du départ d’un arrêt, les passagers encore en attente à cet arrêt passent automatiquement en "Absent" ;
+- le dispatch voit aussi les statuts dans "Info passagers".
