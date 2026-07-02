@@ -139,3 +139,13 @@ Ajouts :
 - calcul des passagers à prévenir selon les points de montée non encore dépassés ;
 - affichage du retard dans Dispatch ;
 - détail des incidents dans Info passagers.
+
+## Version 12 — Onglet Recettes / shift
+
+Ajouts :
+- nouvelle page `recettes.html` ;
+- enregistrement automatique d’une tournée quand le chauffeur arrive au terminus ;
+- total encaissé du shift ;
+- nombre de tournées terminées ;
+- résumé par bus ;
+- détail des tournées terminées avec places, montés, absents, retard et recette.

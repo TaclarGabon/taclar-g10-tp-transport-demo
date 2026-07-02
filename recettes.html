@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>G10 TP Transport — Recettes</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="topbar">
+      <div class="brand">
+        <div class="logo">🚌</div>
+        <div>
+          <h1>Interface Recettes</h1>
+          <p>Suivi des tournées terminées et recettes par shift</p>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Accueil</a>
+        <a href="client.html">Client</a>
+        <a href="chauffeur.html">Chauffeur</a>
+        <a href="dispatch.html">Dispatch</a>
+        <a class="active" href="recettes.html">Recettes</a>
+      </nav>
+    </section>
+
+    <article class="card">
+      <h2>Recette du shift</h2>
+      <p class="muted">Quand un chauffeur termine une course au terminus, la tournée est enregistrée ici automatiquement.</p>
+      <div class="revenue-hero">
+        <div class="revenue-card"><span>Total encaissé</span><strong id="shiftTotal">0 FCFA</strong></div>
+        <div class="revenue-card"><span>Tournées terminées</span><strong id="tripCount">0</strong></div>
+        <div class="revenue-card"><span>Places enregistrées</span><strong id="seatTotal">0</strong></div>
+        <div class="revenue-card"><span>Bus actifs</span><strong id="activeBusCount">0</strong></div>
+      </div>
+      <button class="secondary" id="refreshBtn">Actualiser</button>
+      <button class="danger" id="clearRevenueBtn">Réinitialiser les recettes du shift</button>
+      <div id="message" class="message"></div>
+    </article>
+
+    <article class="card">
+      <h2>Résumé par bus</h2>
+      <div class="bus-revenue-grid" id="busRevenueCards"></div>
+    </article>
+
+    <article class="card">
+      <h2>Détail des tournées terminées</h2>
+      <div class="revenue-table-wrap" id="tripTable"></div>
+    </article>
+  </main>
+
+  <script src="app.js"></script>
+  <script>
+    const message = document.getElementById("message");
+
+    function render(){
+      const state = G10TP.loadState();
+      const trips = state.completedTrips || [];
+      document.getElementById("shiftTotal").textContent = G10TP.formatMoney(G10TP.shiftRevenueTotal(state));
+      document.getElementById("tripCount").textContent = trips.length;
+      document.getElementById("seatTotal").textContent = G10TP.shiftSeatsTotal(state);
+      document.getElementById("activeBusCount").textContent = new Set(trips.map(t => t.busId)).size;
+      renderBusCards(state);
+      renderTripTable(state);
+    }
+
+    function renderBusCards(state){
+      const rows = G10TP.tripsByBus(state);
+      document.getElementById("busRevenueCards").innerHTML = rows.map(row => `
+        <div class="bus-card ${row.count > 0 ? "bus-done" : "bus-open"}">
+          <h3>${row.busLabel}</h3>
+          <p class="small">${row.routeName}</p>
+          <div class="stats" style="grid-template-columns:1fr 1fr">
+            <div class="stat"><span>Tournées</span><strong>${row.count}</strong></div>
+            <div class="stat"><span>Places</span><strong>${row.seats}</strong></div>
+          </div>
+          <div class="price-box"><span>Recette bus</span><strong>${G10TP.formatMoney(row.revenue)}</strong></div>
+        </div>
+      `).join("");
+    }
+
+    function renderTripTable(state){
+      const trips = state.completedTrips || [];
+      if(trips.length === 0){
+        document.getElementById("tripTable").innerHTML = `<div class="empty">Aucune tournée terminée pour le moment.</div>`;
+        return;
+      }
+      let html = `<table><thead><tr><th>Heure fin</th><th>Bus</th><th>Axe</th><th>Trajet</th><th>Places</th><th>Montés</th><th>Absents</th><th>Retard</th><th>Recette</th></tr></thead><tbody>`;
+      trips.forEach(t => {
+        html += `<tr>
+          <td>${t.completedAt}</td><td><strong>${t.busLabel}</strong></td><td>${t.axis}</td><td>${t.routeName}</td>
+          <td>${t.reservedSeats}</td><td><span class="shift-badge">${t.boardedSeats}</span></td>
+          <td><span class="shift-badge ${t.absentSeats > 0 ? "red" : ""}">${t.absentSeats}</span></td>
+          <td><span class="shift-badge ${t.delayMinutes > 0 ? "warn" : ""}">${t.delayMinutes} min</span></td>
+          <td><strong>${G10TP.formatMoney(t.revenue)}</strong></td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+      document.getElementById("tripTable").innerHTML = html;
+    }
+
+    function show(text){ message.textContent = text; message.className = "message ok"; }
+    document.getElementById("refreshBtn").addEventListener("click", render);
+    document.getElementById("clearRevenueBtn").addEventListener("click", () => {
+      const state = G10TP.loadState();
+      state.completedTrips = [];
+      G10TP.saveState(state);
+      render();
+      show("Recettes du shift réinitialisées.");
+    });
+    render();
+  </script>
+</body>
+</html>

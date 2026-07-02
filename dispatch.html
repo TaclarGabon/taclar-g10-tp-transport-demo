@@ -21,6 +21,7 @@
         <a href="client.html">Client</a>
         <a href="chauffeur.html">Chauffeur</a>
         <a class="active" href="dispatch.html">Dispatch</a>
+        <a href="recettes.html">Recettes</a>
       </nav>
     </section>
 
@@ -29,6 +30,11 @@
       <p class="muted">
         Cette page permet de voir les bus, leurs statuts, les places disponibles et le détail des passagers par point de montée.
       </p>
+      <div class="price-box">
+        <span>Recette shift</span>
+        <strong id="dispatchShiftTotal">0 FCFA</strong>
+      </div>
+      <a class="nav active" style="display:inline-block;margin:10px 0 14px;text-decoration:none;" href="recettes.html">Ouvrir l’onglet Recettes</a>
       <div class="grid-3" id="busCards"></div>
       <button class="secondary" id="refreshBtn">Actualiser</button>
       <button class="danger" id="resetEmptyBtn">Réinitialiser toute la démo à zéro</button>
@@ -62,6 +68,8 @@
 
     function render(){
       const state = G10TP.loadState();
+      const shiftTotalEl = document.getElementById("dispatchShiftTotal");
+      if(shiftTotalEl) shiftTotalEl.textContent = G10TP.formatMoney(G10TP.shiftRevenueTotal(state));
       cards.innerHTML = G10TP.BUS_DEFINITIONS.map(bus => {
         const b = state.buses[bus.id];
         const move = G10TP.movementStatus(bus, b);

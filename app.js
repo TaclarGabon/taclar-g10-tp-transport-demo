@@ -101,7 +101,7 @@ function defaultState(){
     {id:uid(), name:"EDAN", phone:"", boarding:"La Poste", seats:4, ref:"G10-B1-1003", createdAt:nowLabel(), farePerSeat:300, totalAmount:1200, paymentMethod:"Réservation app", paymentStatus:"Payé"}
   ];
 
-  return { buses };
+  return { buses, completedTrips: [] };
 }
 
 function loadState(){
@@ -123,6 +123,7 @@ function loadState(){
       if(state.buses[bus.id].delayMinutes === undefined){ state.buses[bus.id].delayMinutes = 0; }
       if(!state.buses[bus.id].incidentLog){ state.buses[bus.id].incidentLog = []; }
     });
+    if(!state.completedTrips){ state.completedTrips = []; }
     return state;
   }catch(e){
     const state = defaultState();
@@ -152,6 +153,7 @@ function clearAllEmpty(){
     state.buses[id].delayMinutes = 0;
     state.buses[id].incidentLog = [];
   });
+  state.completedTrips = [];
   saveState(state);
   return state;
 }
@@ -232,6 +234,17 @@ function advanceTrip(busId){
   const absentText = absentCount > 0 ? ` · ${absentCount} place(s) restée(s) absente(s) à ${departingStop}` : "";
   busState.log.unshift({time:realTime(), text:step.action + absentText + (timeText ? " · " + timeText : "")});
   busState.stage += 1;
+
+  if(busState.stage >= finalStage){
+    const record = recordCompletedTrip(state, busId);
+    if(record){
+      busState.log.unshift({
+        time: realTime(),
+        text: `Tournée enregistrée dans Recettes · ${formatMoney(record.revenue)}`
+      });
+    }
+  }
+
   saveState(state);
   return state;
 }
@@ -837,9 +850,80 @@ function delayLabel(busState){
   return delay > 0 ? `Retard +${delay} min` : "Aucun retard déclaré";
 }
 
+
+function tripRecordId(busId, busState){
+  const lastLog = (busState.log && busState.log[0] && busState.log[0].time) ? busState.log[0].time : realTime();
+  return `${busId}-${lastLog}-${totalReserved(busState)}-${busRevenue(busState)}`;
+}
+
+function completedTripExists(state, id){
+  return (state.completedTrips || []).some(t => t.id === id);
+}
+
+function recordCompletedTrip(state, busId){
+  const busDef = getBusDef(busId);
+  const busState = state.buses[busId];
+  if(!state.completedTrips) state.completedTrips = [];
+
+  const id = tripRecordId(busId, busState);
+  if(completedTripExists(state, id)) return null;
+
+  const summary = boardingSummary(busDef, busState);
+  const boarded = busState.reservations
+    .filter(r => passengerStatusLabel(r) === "Monté et payé")
+    .reduce((sum,r)=>sum+Number(r.seats||0),0);
+  const absent = busState.reservations
+    .filter(r => passengerStatusLabel(r) === "Absent")
+    .reduce((sum,r)=>sum+Number(r.seats||0),0);
+
+  const record = {
+    id,
+    busId,
+    busLabel: busDef.label,
+    axis: busDef.axis,
+    routeName: busDef.routeName,
+    terminal: terminalName(busDef),
+    completedAt: realTime(),
+    plannedStart: busDef.startTime,
+    revenue: busRevenue(busState),
+    reservedSeats: totalReserved(busState),
+    remainingSeats: remainingSeats(busState),
+    boardedSeats: boarded,
+    absentSeats: absent,
+    delayMinutes: Number(busState.delayMinutes || 0),
+    boardingSummary: summary,
+    actualTimes: busState.actualTimes || {}
+  };
+
+  state.completedTrips.unshift(record);
+  return record;
+}
+
+function shiftRevenueTotal(state){
+  return (state.completedTrips || []).reduce((sum,t)=>sum+Number(t.revenue||0),0);
+}
+
+function shiftSeatsTotal(state){
+  return (state.completedTrips || []).reduce((sum,t)=>sum+Number(t.reservedSeats||0),0);
+}
+
+function tripsByBus(state){
+  const rows = {};
+  BUS_DEFINITIONS.forEach(bus => {
+    rows[bus.id] = {busId:bus.id,busLabel:bus.label,routeName:bus.routeName,count:0,revenue:0,seats:0};
+  });
+  (state.completedTrips || []).forEach(t => {
+    if(!rows[t.busId]) rows[t.busId] = {busId:t.busId,busLabel:t.busLabel,routeName:t.routeName,count:0,revenue:0,seats:0};
+    rows[t.busId].count += 1;
+    rows[t.busId].revenue += Number(t.revenue || 0);
+    rows[t.busId].seats += Number(t.reservedSeats || 0);
+  });
+  return Object.values(rows);
+}
+
 window.G10TP = {
   BUS_DEFINITIONS, CAPACITY, loadState, saveState, resetAll, clearAllEmpty, getBusDef,
   totalReserved, remainingSeats, currentStatus, isTripFinished, getStepText, advanceTrip,
   resetTripOnly, resetBusFull, addReservation, sortedReservations, groupTotal,
-  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus, formatMoney, fareInfo, farePerSeat, kmForFare, reservationTotal, busRevenue, addCashPassenger, passengerStatusLabel, passengerStatusClass, setPassengerStatus, currentBoardingStopForDeparture, confirmAllAtCurrentStop, boardingSummary, actualTimeHtml, recordActualTimeForStage, signalIncident, delayLabel, passengersToNotifyForIncident, eligibleBoardingStopsForAlerts, addDelayToPlanTime
+  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus, formatMoney, fareInfo, farePerSeat, kmForFare, reservationTotal, busRevenue, addCashPassenger, passengerStatusLabel, passengerStatusClass, setPassengerStatus, currentBoardingStopForDeparture, confirmAllAtCurrentStop, boardingSummary, actualTimeHtml, recordActualTimeForStage, signalIncident, delayLabel, passengersToNotifyForIncident, eligibleBoardingStopsForAlerts, addDelayToPlanTime, recordCompletedTrip, shiftRevenueTotal, shiftSeatsTotal, tripsByBus
 };
