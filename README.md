@@ -108,3 +108,13 @@ Corrections :
 - si le bus part, les passagers non confirmés restent "Absent" ;
 - paiement cash bloqué lorsque le bus est en route ou la course terminée ;
 - paiement cash autorisé seulement au point de montée actif.
+
+## Version 9 — Mobile chauffeur + point actif
+
+Corrections :
+- interface chauffeur plus légère sur téléphone grâce aux accordéons ;
+- paiement cash station en accordéon ;
+- liste passagers en accordéon ;
+- journal en accordéon ;
+- les boutons passagers Monté/payé sont bloqués si le passager n’est pas au point de montée actif ;
+- exemple : tant que le bus est à Owendo, les passagers de La Poste ne peuvent pas être confirmés.

@@ -302,8 +302,10 @@
             </div>
           </article>
 
-          <article class="card compact-card cash-panel">
-            <h2>Paiement cash station</h2>
+          <details class="accordion-card" >
+            <summary>Paiement cash station</summary>
+            <div class="accordion-content">
+<h2>Paiement cash station</h2>
             <p class="muted">Pour un client qui arrive sans réservation. Le chauffeur encaisse et ajoute directement le passager au bus.</p>
 
             <div class="cash-grid">
@@ -337,7 +339,8 @@
             <div class="tariff-note" id="cashFareNote">Tarif calculé à 60 FCFA/km, minimum 300 FCFA.</div><div class="logic-note">Le cash est autorisé seulement au point de montée actif. Dès que le bus est en route, l’encaissement est bloqué.</div>
 
             <button class="primary" id="cashBtn">Encaisser cash et ajouter au bus</button>
-          </article>
+            </div>
+          </details>
         </div>
 
         <div class="driver-right">
@@ -375,16 +378,25 @@
             <div id="message" class="message"></div>
           </article>
 
-          <article class="card compact-card passenger-card">
-            <h2>Liste des passagers</h2>
+          <details class="accordion-card" open>
+            <summary>Liste des passagers</summary>
+            <div class="accordion-content">
+<h2>Liste des passagers</h2>
             <p class="muted">Les passagers sont triés automatiquement par point de montée.</p>
+            <div class="lock-note">
+              Les boutons Monté/payé sont actifs seulement pour le point de montée actuel. Exemple : à Owendo, les passagers de La Poste sont bloqués jusqu’à l’arrivée à La Poste.
+            </div>
             <div id="reservationTable"></div>
-          </article>
+            </div>
+          </details>
 
-          <article class="card compact-card">
-            <h2>Journal</h2>
+          <details class="accordion-card" >
+            <summary>Journal de course</summary>
+            <div class="accordion-content">
+<h2>Journal</h2>
             <ul id="tripLog" class="log"></ul>
-          </article>
+            </div>
+          </details>
         </div>
       </section>
     </section>
@@ -468,6 +480,8 @@
         ? G10TP.sortedReservations(busDef, busState)
         : [...busState.reservations];
 
+      const activeStop = G10TP.currentBoardingStopForDeparture(busDef, busState);
+
       let html = `
         <table>
           <thead>
@@ -500,8 +514,10 @@
         }
 
         const status = G10TP.passengerStatusLabel(r);
-        const disabledBoarded = status === "Monté et payé" ? "disabled" : "";
-        const disabledAbsent = status === "Absent" ? "disabled" : "";
+        const notActiveStop = !activeStop || r.boarding !== activeStop;
+        const disabledBoarded = status === "Monté et payé" || notActiveStop ? "disabled" : "";
+        const disabledAbsent = status === "Absent" || notActiveStop ? "disabled" : "";
+        const lockTitle = notActiveStop ? ` title="Action bloquée : point actif ${activeStop || 'aucun'}"` : "";
 
         html += `
           <tr>
@@ -512,8 +528,8 @@
             <td><span class="badge ${r.paymentMethod === "Cash chauffeur" ? "payment-cash" : "payment-paid"}">${G10TP.formatMoney(r.totalAmount || 0)}</span></td>
             <td>
               <div class="passenger-actions">
-                <button class="btn-mini-ok" data-status="Monté et payé" data-passenger="${r.id}" ${disabledBoarded}>Monté/payé</button>
-                <button class="btn-mini-absent" data-status="Absent" data-passenger="${r.id}" ${disabledAbsent}>Absent</button>
+                <button class="btn-mini-ok" data-status="Monté et payé" data-passenger="${r.id}" ${disabledBoarded}${lockTitle}>Monté/payé</button>
+                <button class="btn-mini-absent" data-status="Absent" data-passenger="${r.id}" ${disabledAbsent}${lockTitle}>Absent</button>
               </div>
             </td>
           </tr>
