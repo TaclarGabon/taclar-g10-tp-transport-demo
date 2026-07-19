@@ -278,9 +278,13 @@ function addReservation(busId, data){
   if(busState.stage > 0){
     return {ok:false, message:"Réservation fermée : le bus est déjà parti."};
   }
+
+  const phone = String(data.phone || "").replace(/\s+/g, "").trim();
   const seats = Number(data.seats);
-  if(!data.name || !data.name.trim()){
-    return {ok:false, message:"Merci d’entrer le nom complet."};
+  const paymentMethod = data.paymentMethod === "cash" ? "Paiement sur place" : "Airtel Money";
+
+  if(phone.length < 7){
+    return {ok:false, message:"Merci d’entrer un numéro de téléphone valide."};
   }
   if(!Number.isInteger(seats) || seats < 1){
     return {ok:false, message:"Merci d’entrer un nombre de places valide."};
@@ -295,25 +299,31 @@ function addReservation(busId, data){
   }
 
   const def = getBusDef(busId);
-  const ref = `G10-${def.label.replace("Bus ","B")}-${Math.floor(1000 + Math.random()*9000)}`;
+  const ref = `TAC-${def.label.replace("Bus ","B")}-${Math.floor(1000 + Math.random()*9000)}`;
   const total = fare * seats;
+  const isAirtel = paymentMethod === "Airtel Money";
 
   busState.reservations.push({
     id:uid(),
-    name:data.name.trim(),
-    phone:(data.phone || "").trim(),
+    name:`Client ${phone.slice(-4)}`,
+    phone,
     boarding:data.boarding,
     seats,
     ref,
     createdAt:nowLabel(),
     farePerSeat:fare,
     totalAmount:total,
-    paymentMethod:"Réservation app",
-    paymentStatus:"Payé",
+    paymentMethod,
+    paymentStatus:isAirtel ? "Payé" : "À encaisser",
+    paymentReference:isAirtel ? `AM-${Math.floor(100000 + Math.random()*900000)}` : "",
     boardingStatus:"Absent"
   });
   saveState(state);
-  return {ok:true, message:`Réservation confirmée : ${seats} place(s) depuis ${data.boarding}. Montant payé : ${formatMoney(total)}. Référence : ${ref}`};
+
+  if(isAirtel){
+    return {ok:true, ref, message:`Paiement Airtel Money simulé et réservation confirmée : ${seats} place(s). Montant : ${formatMoney(total)}. Référence : ${ref}. Présentez-vous 5 minutes avant le départ.`};
+  }
+  return {ok:true, ref, message:`Réservation confirmée : ${seats} place(s). Paiement à effectuer sur place avant le départ. Référence : ${ref}. Présentez-vous 5 minutes avant le départ.`};
 }
 
 function sortedReservations(busDef, busState){
