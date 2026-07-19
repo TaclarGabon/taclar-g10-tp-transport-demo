@@ -3,89 +3,171 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TACLAR — Réserver une place</title>
+  <title>TACLAR Multiservices — Réservation</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="client-body">
-  <div class="client-shell">
-    <aside class="client-sidebar">
-      <div class="client-brand"><span>🚌</span><div><strong>TACLAR</strong><small>Transport urbain</small></div></div>
-      <nav>
-        <a class="active" href="client.html">⌂ Réserver une place</a>
-        <a href="index.html">▦ Accueil de la démo</a>
-        <a href="chauffeur.html">♙ Interface chauffeur</a>
-        <a href="dispatch.html">◉ Suivi des bus</a>
-      </nav>
-      <div class="sidebar-note">Réservation simple, rapide et sécurisée.</div>
-    </aside>
+<body>
+  <div class="app-shell">
+    
+  <aside class="sidebar">
+    <div class="brand-block">
+      <div class="brand-icon">T</div>
+      <div>
+        <div class="brand-name">TACLAR</div>
+        <div class="brand-sub">MULTISERVICES</div>
+      </div>
+    </div>
 
-    <main class="client-main">
-      <header class="client-hero">
-        <div>
-          <span class="eyebrow">TACLAR • TRANSPORT LOCAL</span>
-          <h1>Réservez votre place en quelques secondes</h1>
-          <p>Choisissez votre trajet, votre point de montée et votre mode de paiement.</p>
-        </div>
-        <div class="bus-visual" aria-hidden="true">🚌</div>
-      </header>
+    <nav class="side-nav">
+      <a class="side-link " href="index.html"><span class="icon">⌂</span><span>Accueil</span></a>
+      <a class="side-link active" href="client.html"><span class="icon">🗓</span><span>Réservation</span></a>
+      <a class="side-link " href="chauffeur.html"><span class="icon">👤</span><span>Interface chauffeur</span></a>
+      <a class="side-link " href="dispatch.html"><span class="icon">📍</span><span>Suivi des bus</span></a>
+      <a class="side-link " href="recettes.html"><span class="icon">📊</span><span>Recettes</span></a>
+      <a class="side-link " href="index.html"><span class="icon">⚙</span><span>Paramètres</span></a>
+    </nav>
 
-      <section class="booking-layout">
-        <article class="booking-card">
-          <div class="section-title"><span>1</span><div><h2>Choisir le départ</h2><p>Les axes et les bus disponibles sont déjà enregistrés.</p></div></div>
-          <label for="busSelect">Axe et bus</label>
-          <select id="busSelect"></select>
-          <div id="routeInfo" class="route-summary"></div>
-          <div id="timeline"></div>
-          <div class="stats compact-stats">
-            <div class="stat"><span>Capacité</span><strong>24</strong></div>
-            <div class="stat"><span>Réservées</span><strong id="reservedTotal">0</strong></div>
-            <div class="stat"><span>Disponibles</span><strong id="remainingTotal">24</strong></div>
+    <div class="side-spacer"></div>
+
+    <div class="side-note">
+      <strong>Plateforme de gestion</strong>
+      TACLAR Multiservices fournit la gestion des réservations, le suivi des bus et la supervision opérationnelle. La plateforme n’est pas un transporteur.
+    </div>
+
+    <div class="profile-box">
+      <div class="avatar">👤</div>
+      <div>
+        <div style="font-weight:800">Client</div>
+        <div style="font-size:13px;opacity:.92">+241 06 12 34 56</div>
+        <span class="small-green">● En ligne</span>
+      </div>
+    </div>
+
+    <a class="logout-link" href="index.html">↩ Déconnexion</a>
+  </aside>
+
+    <main class="content-area">
+      
+    <header class="topbar">
+      <div class="page-heading">
+        <h1>Réservez votre place</h1>
+        <p>Réservation simple, rapide et sécurisée de votre trajet en ligne. La cliente choisit son axe, son point de montée, le nombre de places et son mode de paiement.</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="top-icon small-badge" data-count="3">🔔</div>
+        <div class="top-icon">✉</div>
+        <div class="top-icon">?</div>
+        <div class="user-chip">👤 <span>Client</span> ▾</div>
+      </div>
+    </header>
+    
+
+      <section class="card">
+        <div class="summary-strip">
+          <div class="summary-main">
+            <div class="big-icon">⇄</div>
+            <div>
+              <label for="busSelect">Axe / Bus</label>
+              <select id="busSelect"></select>
+            </div>
           </div>
-        </article>
+          <div class="stat"><span>Places réservées</span><strong id="reservedTotal">0</strong></div>
+          <div class="stat"><span>Places disponibles</span><strong id="remainingTotal">24</strong></div>
+          <div class="stat"><span>Tarification</span><strong id="farePerSeatTop">—</strong></div>
+        </div>
 
-        <article class="booking-card">
-          <div class="section-title"><span>2</span><div><h2>Vos informations</h2><p>Aucun nom n’est demandé. Le téléphone identifie la réservation.</p></div></div>
+        <div class="grid" style="margin-top:14px">
+          <div>
+            <div id="routeInfo"></div>
+            <div id="timeline"></div>
+            <div class="helper-note">Les axes et les tarifs sont ceux de votre fichier de base. Les réservations restent ouvertes tant que le bus n’a pas démarré.</div>
+          </div>
+          <div class="visual-panel">
+            <div class="mini-dashboard">
+              <div class="mini-cards">
+                <div class="mini-card"><div class="small">Tableau de bord</div><strong>TACLAR Multiservices</strong></div>
+                <div class="mini-card"><div class="small">Taux d’occupation</div><strong id="occupancyNote">0 / 24 places</strong></div>
+                <div class="mini-card"><div class="small">Modes de paiement</div><strong>Airtel Money • Sur place</strong></div>
+              </div>
+              <div class="mini-phone">
+                <div class="check">✓</div>
+                <strong style="font-size:22px;color:var(--teal-dark)">Réservation</strong>
+                <div class="muted" style="text-align:center">La plateforme gère la demande, le suivi et la confirmation.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Vos informations</h2>
+          <p class="muted">Aucun nom obligatoire : le numéro de téléphone sert d’identifiant de réservation.</p>
           <div class="form-grid">
             <div>
               <label for="phone">Numéro de téléphone</label>
-              <input id="phone" type="tel" inputmode="tel" placeholder="Ex. 077 00 00 00" />
-            </div>
-            <div>
-              <label for="seats">Nombre de places</label>
-              <input id="seats" type="number" min="1" max="24" value="1" />
+              <input id="phone" type="tel" placeholder="Ex : +241 06 12 34 56" />
             </div>
             <div>
               <label for="boarding">Point de montée</label>
               <select id="boarding"></select>
             </div>
             <div>
-              <label>Destination</label>
+              <label for="destination">Destination</label>
               <input id="destination" disabled />
+            </div>
+            <div>
+              <label for="seats">Nombre de places</label>
+              <input id="seats" type="number" min="1" max="24" value="1" />
+            </div>
+            <div class="full hide">
+              <input id="name" type="text" value="Client" />
             </div>
           </div>
 
-          <div class="section-title payment-title"><span>3</span><div><h2>Mode de paiement</h2><p>Choisissez comment régler votre place.</p></div></div>
+          <div class="price-grid" style="margin-top:16px">
+            <div class="price-box"><span>Prix par place</span><strong id="farePerSeat">—</strong></div>
+            <div class="price-box"><span>Total</span><strong id="fareTotal">—</strong></div>
+          </div>
+          <div class="tariff-note" id="fareNote">Tarif calculé à partir des valeurs définies dans votre fichier de base.</div>
+        </article>
+
+        <article class="card">
+          <h2>Mode de paiement</h2>
           <div class="payment-options">
-            <label class="payment-choice selected">
-              <input type="radio" name="payment" value="airtel" checked />
-              <span class="payment-icon">📱</span>
-              <span><strong>Airtel Money</strong><small>Payer maintenant sur le site</small></span>
-            </label>
-            <label class="payment-choice">
-              <input type="radio" name="payment" value="cash" />
-              <span class="payment-icon">💵</span>
-              <span><strong>Paiement sur place</strong><small>Place réservée, règlement avant départ</small></span>
-            </label>
+            <div class="radio-card">
+              <input type="radio" id="payAirtel" name="paymentMethod" value="Airtel Money" checked>
+              <label for="payAirtel">
+                <div class="choice-icon">₳</div>
+                <div>
+                  <div class="choice-title">Airtel Money</div>
+                  <div class="muted">Paiement immédiat sur le site (simulation démo).</div>
+                </div>
+              </label>
+            </div>
+            <div class="radio-card">
+              <input type="radio" id="payLater" name="paymentMethod" value="Paiement sur place">
+              <label for="payLater">
+                <div class="choice-icon">₣</div>
+                <div>
+                  <div class="choice-title">Paiement sur place</div>
+                  <div class="muted">Réservation enregistrée, règlement avant départ.</div>
+                </div>
+              </label>
+            </div>
           </div>
 
-          <div class="price-grid">
-            <div class="price-box"><span>Prix par place</span><strong id="farePerSeat">—</strong></div>
-            <div class="price-box total-box"><span>Total</span><strong id="fareTotal">—</strong></div>
+          <div class="whatsapp-box">
+            <div>
+              <div class="wa-title">Notification WhatsApp</div>
+              <div class="helper-note">Après la réservation, un message peut être préparé pour avertir l’exploitation / le groupe WhatsApp.</div>
+            </div>
+            <a id="whatsappLink" class="whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer">WhatsApp non prêt</a>
           </div>
-          <div class="tariff-note" id="fareNote"></div>
-          <button class="primary booking-button" id="reserveBtn">Payer avec Airtel Money et réserver</button>
+
+          <button class="primary-action" id="reserveBtn">Réserver maintenant</button>
+          <button class="secondary" id="sampleBtn">Ajouter un exemple</button>
           <div id="message" class="message"></div>
-          <p class="demo-disclaimer">Démo : le paiement Airtel Money est simulé. La version commerciale sera reliée au service de paiement pour vérifier automatiquement la transaction.</p>
         </article>
       </section>
     </main>
@@ -93,22 +175,21 @@
 
   <script src="app.js"></script>
   <script>
+    const ADMIN_WHATSAPP = "24100000000";
     const busSelect = document.getElementById("busSelect");
     const boarding = document.getElementById("boarding");
     const destination = document.getElementById("destination");
     const timeline = document.getElementById("timeline");
     const routeInfo = document.getElementById("routeInfo");
     const msg = document.getElementById("message");
-    const reserveBtn = document.getElementById("reserveBtn");
+    const waLink = document.getElementById("whatsappLink");
 
     G10TP.fillBusSelect(busSelect);
-    const currentBusId = () => busSelect.value;
-    const selectedPayment = () => document.querySelector('input[name="payment"]:checked').value;
 
-    function updatePaymentUi(){
-      const airtel = selectedPayment() === "airtel";
-      reserveBtn.textContent = airtel ? "Payer avec Airtel Money et réserver" : "Réserver et payer sur place";
-      document.querySelectorAll(".payment-choice").forEach(el => el.classList.toggle("selected", el.querySelector("input").checked));
+    function currentBusId(){ return busSelect.value; }
+    function currentPaymentMethod(){
+      const checked = document.querySelector('input[name="paymentMethod"]:checked');
+      return checked ? checked.value : 'Airtel Money';
     }
 
     function updateFare(){
@@ -116,8 +197,11 @@
       const fare = G10TP.farePerSeat(currentBusId(), boarding.value);
       const km = G10TP.kmForFare(currentBusId(), boarding.value);
       document.getElementById("farePerSeat").textContent = G10TP.formatMoney(fare);
-      document.getElementById("fareTotal").textContent = fare === null ? "À confirmer" : G10TP.formatMoney(fare * seats);
-      document.getElementById("fareNote").textContent = fare === null ? "Tarif à confirmer." : `${km} km retenu(s) × 60 FCFA/km, avec minimum et arrondi commercial.`;
+      document.getElementById("farePerSeatTop").textContent = G10TP.formatMoney(fare);
+      document.getElementById("fareTotal").textContent = fare === null ? "Tarif à confirmer" : G10TP.formatMoney(fare * seats);
+      document.getElementById("fareNote").textContent = fare === null
+        ? "Tarif à confirmer après validation de la distance."
+        : `${km} km retenu(s) selon le fichier de base.`;
     }
 
     function render(){
@@ -125,40 +209,104 @@
       const busDef = G10TP.getBusDef(currentBusId());
       const busState = state.buses[currentBusId()];
       const status = G10TP.currentStatus(busState);
+
       const previousBoarding = boarding.value;
       G10TP.fillBoardingSelect(boarding, busDef);
-      if(previousBoarding && [...boarding.options].some(o => o.value === previousBoarding)) boarding.value = previousBoarding;
+      if(previousBoarding){
+        const exists = [...boarding.options].some(o => o.value === previousBoarding);
+        if(exists) boarding.value = previousBoarding;
+      }
       destination.value = G10TP.terminalName(busDef);
-      routeInfo.innerHTML = `<span class="${status.cls}">${status.label}</span><h3>${busDef.routeName}</h3><p>${busDef.label} · ${busDef.axis} · Départ ${busDef.startTime}</p>`;
+
+      routeInfo.innerHTML = `
+        <span class="${status.cls}">${status.label}</span>
+        <h3>${busDef.label} — ${busDef.routeName}</h3>
+        <div class="info-grid" style="margin-top:10px">
+          <div class="kpi"><div class="small">Départ prévu</div><strong>${busDef.startTime}</strong></div>
+          <div class="kpi"><div class="small">Destination finale</div><strong>${G10TP.terminalName(busDef)}</strong></div>
+          <div class="kpi"><div class="small">Axe</div><strong>${busDef.axis}</strong></div>
+          <div class="kpi"><div class="small">Fenêtre conseillée</div><strong>1h avant départ</strong></div>
+        </div>
+      `;
+
       G10TP.renderTimeline(timeline, busDef, busState);
       document.getElementById("reservedTotal").textContent = G10TP.totalReserved(busState);
       document.getElementById("remainingTotal").textContent = G10TP.remainingSeats(busState);
+      document.getElementById("occupancyNote").textContent = `${G10TP.totalReserved(busState)} / 24 places`;
+
       updateFare();
-      reserveBtn.disabled = busState.stage > 0 || G10TP.remainingSeats(busState) <= 0 || G10TP.farePerSeat(currentBusId(), boarding.value) === null;
+      const fareReady = G10TP.farePerSeat(currentBusId(), boarding.value) !== null;
+      const closed = busState.stage > 0 || G10TP.remainingSeats(busState) <= 0 || !fareReady;
+      document.getElementById("reserveBtn").disabled = closed;
+      waLink.textContent = 'WhatsApp non prêt';
+      waLink.href = '#';
     }
 
     function show(text, type){
       msg.textContent = text;
-      msg.className = "message " + (type === "error" ? "err" : "ok");
+      msg.className = "message " + (type === "error" ? "err" : type === "info" ? "info" : "ok");
     }
 
-    reserveBtn.addEventListener("click", () => {
+    function buildWhatsappLink(result, totalAmount){
+      const busDef = G10TP.getBusDef(currentBusId());
+      const phone = (document.getElementById('phone').value || '').trim() || 'non renseigné';
+      const text = `Nouvelle réservation site TACLAR%0ARef : ${encodeURIComponent(result.ref || '')}%0ABus : ${encodeURIComponent(busDef.label)}%0ATrajet : ${encodeURIComponent(busDef.routeName)}%0APoint de montée : ${encodeURIComponent(boarding.value)}%0ADestination : ${encodeURIComponent(destination.value)}%0APlaces : ${encodeURIComponent(document.getElementById('seats').value)}%0ATéléphone client : ${encodeURIComponent(phone)}%0APaiement : ${encodeURIComponent(currentPaymentMethod())}%0AMontant : ${encodeURIComponent(totalAmount)}`;
+      const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${text}`;
+      waLink.href = url;
+      waLink.textContent = 'Ouvrir la notification WhatsApp';
+      return url;
+    }
+
+    document.getElementById("reserveBtn").addEventListener("click", () => {
+      const seats = parseInt(document.getElementById("seats").value, 10) || 1;
+      const total = G10TP.reservationTotal(currentBusId(), boarding.value, seats);
       const result = G10TP.addReservation(currentBusId(), {
+        name:document.getElementById("name").value,
         phone:document.getElementById("phone").value,
         boarding:boarding.value,
-        seats:parseInt(document.getElementById("seats").value, 10),
-        paymentMethod:selectedPayment()
+        seats:seats,
+        paymentMethod: currentPaymentMethod()
       });
       render();
-      show(result.message, result.ok ? "ok" : "error");
-      if(result.ok){ document.getElementById("phone").value = ""; document.getElementById("seats").value = 1; }
+      if(result.ok){
+        const refMatch = result.message.match(/Référence :\s*([^\.]+)/);
+        result.ref = refMatch ? refMatch[1] : '';
+        buildWhatsappLink(result, G10TP.formatMoney(total));
+        show(result.message + ' Notification WhatsApp prête.', 'ok');
+        document.getElementById("phone").value = "";
+        document.getElementById("seats").value = 1;
+      } else {
+        show(result.message, 'error');
+      }
     });
 
-    document.querySelectorAll('input[name="payment"]').forEach(el => el.addEventListener("change", updatePaymentUi));
+    const samples = [
+      {name:"Client 2048", phone:"+241 06 12 34 56", seats:2},
+      {name:"Client 1122", phone:"+241 07 22 33 44", seats:1},
+      {name:"Client 7788", phone:"+241 05 66 77 88", seats:3}
+    ];
+    let sampleIndex = 0;
+
+    document.getElementById("sampleBtn").addEventListener("click", () => {
+      const sample = samples[sampleIndex % samples.length];
+      sampleIndex++;
+      document.getElementById('phone').value = sample.phone;
+      document.getElementById('seats').value = sample.seats;
+      const result = G10TP.addReservation(currentBusId(), {...sample, boarding:boarding.value, paymentMethod: currentPaymentMethod()});
+      render();
+      if(result.ok){
+        const total = G10TP.reservationTotal(currentBusId(), boarding.value, sample.seats);
+        const refMatch = result.message.match(/Référence :\s*([^\.]+)/);
+        result.ref = refMatch ? refMatch[1] : '';
+        buildWhatsappLink(result, G10TP.formatMoney(total));
+      }
+      show(result.message, result.ok ? "ok" : "error");
+    });
+
     busSelect.addEventListener("change", render);
     boarding.addEventListener("change", updateFare);
     document.getElementById("seats").addEventListener("input", updateFare);
-    updatePaymentUi();
+    document.querySelectorAll('input[name="paymentMethod"]').forEach(r => r.addEventListener('change', updateFare));
     render();
   </script>
 </body>

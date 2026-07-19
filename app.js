@@ -278,14 +278,11 @@ function addReservation(busId, data){
   if(busState.stage > 0){
     return {ok:false, message:"Réservation fermée : le bus est déjà parti."};
   }
-
-  const phone = String(data.phone || "").replace(/\s+/g, "").trim();
   const seats = Number(data.seats);
-  const paymentMethod = data.paymentMethod === "cash" ? "Paiement sur place" : "Airtel Money";
-
-  if(phone.length < 7){
-    return {ok:false, message:"Merci d’entrer un numéro de téléphone valide."};
-  }
+  const phone = (data.phone || "").trim();
+  const providedName = (data.name || "").trim();
+  const fallbackName = phone ? `Client ${phone.slice(-4)}` : "Client";
+  const displayName = providedName || fallbackName;
   if(!Number.isInteger(seats) || seats < 1){
     return {ok:false, message:"Merci d’entrer un nombre de places valide."};
   }
@@ -298,32 +295,29 @@ function addReservation(busId, data){
     return {ok:false, message:"Tarif non défini pour ce bus / point de montée."};
   }
 
+  const paymentMethod = (data.paymentMethod || "Airtel Money").trim();
+  const paymentStatus = paymentMethod === "Paiement sur place" ? "À encaisser" : "Payé";
+
   const def = getBusDef(busId);
-  const ref = `TAC-${def.label.replace("Bus ","B")}-${Math.floor(1000 + Math.random()*9000)}`;
+  const ref = `G10-${def.label.replace("Bus ","B")}-${Math.floor(1000 + Math.random()*9000)}`;
   const total = fare * seats;
-  const isAirtel = paymentMethod === "Airtel Money";
 
   busState.reservations.push({
     id:uid(),
-    name:`Client ${phone.slice(-4)}`,
-    phone,
+    name:displayName,
+    phone:phone,
     boarding:data.boarding,
     seats,
     ref,
     createdAt:nowLabel(),
     farePerSeat:fare,
     totalAmount:total,
-    paymentMethod,
-    paymentStatus:isAirtel ? "Payé" : "À encaisser",
-    paymentReference:isAirtel ? `AM-${Math.floor(100000 + Math.random()*900000)}` : "",
+    paymentMethod:paymentMethod,
+    paymentStatus:paymentStatus,
     boardingStatus:"Absent"
   });
   saveState(state);
-
-  if(isAirtel){
-    return {ok:true, ref, message:`Paiement Airtel Money simulé et réservation confirmée : ${seats} place(s). Montant : ${formatMoney(total)}. Référence : ${ref}. Présentez-vous 5 minutes avant le départ.`};
-  }
-  return {ok:true, ref, message:`Réservation confirmée : ${seats} place(s). Paiement à effectuer sur place avant le départ. Référence : ${ref}. Présentez-vous 5 minutes avant le départ.`};
+  return {ok:true, message:`Réservation confirmée : ${seats} place(s) depuis ${data.boarding}. ${paymentMethod === "Paiement sur place" ? "Paiement sur place sélectionné." : "Paiement validé."} Référence : ${ref}`};
 }
 
 function sortedReservations(busDef, busState){

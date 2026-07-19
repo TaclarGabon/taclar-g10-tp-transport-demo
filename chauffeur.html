@@ -3,448 +3,192 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>G10 TP Transport — Interface Chauffeur</title>
+  <title>TACLAR Multiservices — Interface chauffeur</title>
   <link rel="stylesheet" href="styles.css" />
-  <style>
-    body{
-      background:
-        linear-gradient(rgba(255,255,255,.78), rgba(255,255,255,.78)),
-        repeating-linear-gradient(0deg, transparent 0 31px, rgba(0,0,0,.08) 32px),
-        repeating-linear-gradient(90deg, transparent 0 31px, rgba(0,0,0,.08) 32px),
-        linear-gradient(180deg,#fff7ef 0%,#eef7f7 18%,#edf7f6 100%);
-    }
-
-    .driver-shell{
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 16px;
-      background: rgba(238, 250, 250, .72);
-      border: 1px solid rgba(0,140,145,.12);
-      border-radius: 26px;
-    }
-
-    .driver-main{
-      display:grid;
-      grid-template-columns: 1.05fr .95fr;
-      gap:16px;
-      align-items:start;
-    }
-
-    .driver-left,
-    .driver-right{
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-    }
-
-    .compact-card{
-      margin-bottom:0;
-      padding:18px;
-      border-radius:20px;
-    }
-
-    .driver-top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:10px;
-      flex-wrap:wrap;
-    }
-
-    .driver-title{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-
-    .mini-logo{
-      width:46px;
-      height:46px;
-      border-radius:14px;
-      background:var(--yellow);
-      display:grid;
-      place-items:center;
-      font-size:24px;
-      box-shadow:0 8px 18px rgba(0,0,0,.08);
-    }
-
-    .driver-title h1{
-      font-size:22px;
-      margin:0;
-    }
-
-    .driver-title p{
-      margin:2px 0 0;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:700;
-    }
-
-    .top-nav{
-      display:flex;
-      gap:8px;
-      justify-content:flex-end;
-      flex-wrap:wrap;
-    }
-
-    .top-nav a{
-      text-decoration:none;
-      padding:8px 11px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:900;
-      color:var(--teal-dark);
-      background:#fff;
-      border:1px solid var(--line);
-    }
-
-    .top-nav a.active{
-      color:#fff;
-      background:var(--teal);
-      border-color:var(--teal);
-    }
-
-    .section-title{
-      margin:0 0 12px;
-      font-size:22px;
-      letter-spacing:-.35px;
-    }
-
-    .route-card-title{
-      margin-top:12px;
-    }
-
-    .route-card-title h2{
-      margin:4px 0 6px;
-      font-size:19px;
-    }
-
-    .route-card-title .small{
-      margin:0;
-    }
-
-    .timeline{
-      margin:18px 0 14px;
-    }
-
-    .stats.compact-stats{
-      grid-template-columns:repeat(3,1fr);
-      gap:10px;
-      margin-top:12px;
-    }
-
-    .stats.compact-stats .stat{
-      min-height:72px;
-      padding:12px;
-    }
-
-    .stats.compact-stats .stat strong{
-      font-size:24px;
-    }
-
-    .driver-action-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-      margin:12px 0;
-    }
-
-    .driver-action-box{
-      background:var(--soft);
-      border:1px solid var(--line);
-      border-radius:15px;
-      padding:12px;
-      min-height:76px;
-    }
-
-    .driver-action-box span{
-      display:block;
-      color:var(--muted);
-      font-size:12px;
-      font-weight:800;
-      margin-bottom:5px;
-    }
-
-    .driver-action-box strong{
-      display:block;
-      font-size:16px;
-      color:var(--teal-dark);
-      line-height:1.2;
-    }
-
-    .primary-action{
-      background:var(--teal);
-      color:white;
-      margin-top:8px;
-    }
-
-    .cash-panel{
-      margin-bottom:0;
-    }
-
-    .cash-panel h2{
-      font-size:22px;
-    }
-
-    .cash-grid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:10px;
-    }
-
-    .cash-grid .full{
-      grid-column:1/-1;
-    }
-
-    .cash-grid input,
-    .cash-grid select{
-      padding:12px;
-      font-size:14px;
-    }
-
-    .price-box{
-      padding:13px;
-      border-radius:15px;
-    }
-
-    .price-box strong{
-      font-size:24px;
-    }
-
-    .passenger-card{
-      min-height: 500px;
-    }
-
-    .passenger-card table{
-      font-size:13px;
-    }
-
-    .passenger-card th,
-    .passenger-card td{
-      padding:10px 9px;
-      font-size:13px;
-    }
-
-    .message{
-      margin-top:10px;
-    }
-
-    @media(max-width: 980px){
-      .driver-main{
-        grid-template-columns:1fr;
-      }
-      .passenger-card{
-        min-height:auto;
-      }
-    }
-
-    @media(max-width: 640px){
-      .driver-shell{
-        padding:10px;
-        border-radius:18px;
-      }
-      .compact-card{
-        padding:15px;
-      }
-      .driver-action-grid,
-      .cash-grid,
-      .stats.compact-stats{
-        grid-template-columns:1fr;
-      }
-      .top-nav{
-        justify-content:flex-start;
-      }
-    }
-  </style>
 </head>
 <body>
-  <main class="page">
-    <section class="driver-shell">
-      <div class="driver-top">
-        <div class="driver-title">
-          <div class="mini-logo">🚌</div>
-          <div>
-            <h1>Interface Chauffeur</h1>
-            <p>Liste passagers et suivi de course</p>
-          </div>
-        </div>
-
-        <nav class="top-nav">
-          <a href="index.html">Accueil</a>
-          <a href="client.html">Client</a>
-          <a class="active" href="chauffeur.html">Chauffeur</a>
-          <a href="dispatch.html">Dispatch</a>
-        <a href="recettes.html">Recettes</a>
-        </nav>
+  <div class="app-shell">
+    
+  <aside class="sidebar">
+    <div class="brand-block">
+      <div class="brand-icon">T</div>
+      <div>
+        <div class="brand-name">TACLAR</div>
+        <div class="brand-sub">MULTISERVICES</div>
       </div>
+    </div>
 
-      <section class="driver-main">
-        <div class="driver-left">
-          <article class="card compact-card">
-            <h2 class="section-title">Choisir le bus</h2>
+    <nav class="side-nav">
+      <a class="side-link " href="index.html"><span class="icon">⌂</span><span>Accueil</span></a>
+      <a class="side-link " href="client.html"><span class="icon">🗓</span><span>Réservation</span></a>
+      <a class="side-link active" href="chauffeur.html"><span class="icon">👤</span><span>Interface chauffeur</span></a>
+      <a class="side-link " href="dispatch.html"><span class="icon">📍</span><span>Suivi des bus</span></a>
+      <a class="side-link " href="recettes.html"><span class="icon">📊</span><span>Recettes</span></a>
+      <a class="side-link " href="index.html"><span class="icon">⚙</span><span>Paramètres</span></a>
+    </nav>
 
-            <label for="busSelect">Bus chauffeur</label>
-            <select id="busSelect"></select>
+    <div class="side-spacer"></div>
 
-            <div id="busInfo" class="route-card-title"></div>
+    <div class="side-note">
+      <strong>Plateforme de gestion</strong>
+      TACLAR Multiservices fournit la gestion des réservations, le suivi des bus et la supervision opérationnelle. La plateforme n’est pas un transporteur.
+    </div>
 
-            <div id="timeline"></div>
+    <div class="profile-box">
+      <div class="avatar">👤</div>
+      <div>
+        <div style="font-weight:800">Client</div>
+        <div style="font-size:13px;opacity:.92">+241 06 12 34 56</div>
+        <span class="small-green">● En ligne</span>
+      </div>
+    </div>
 
-            <div class="stats compact-stats">
-              <div class="stat"><span>Capacité</span><strong>24</strong></div>
-              <div class="stat"><span>Réservées</span><strong id="reservedTotal">0</strong></div>
-              <div class="stat"><span>Restantes</span><strong id="remainingTotal">24</strong></div>
+    <a class="logout-link" href="index.html">↩ Déconnexion</a>
+  </aside>
+
+    <main class="content-area">
+      <section class="driver-shell">
+        <div class="driver-top">
+          <div class="driver-title">
+            <div class="mini-logo">T</div>
+            <div>
+              <h1>Interface chauffeur</h1>
+              <p>Suivi de course, embarquement, cash station, incidents et journal</p>
             </div>
-
-            <div class="price-box">
-              <span>Caisse de ce bus</span>
-              <strong id="busRevenue">0 FCFA</strong>
-            </div>
-          </article>
-
-          <details class="accordion-card" >
-            <summary>Paiement cash station</summary>
-            <div class="accordion-content">
-<h2>Paiement cash station</h2>
-            <p class="muted">Pour un client qui arrive sans réservation. Le chauffeur encaisse et ajoute directement le passager au bus.</p>
-
-            <div class="cash-grid">
-              <div class="full">
-                <label for="cashName">Nom ou note</label>
-                <input id="cashName" type="text" placeholder="Ex : Passager cash / Famille 2 places" />
-              </div>
-
-              <div>
-                <label for="cashBoarding">Point de montée</label>
-                <select id="cashBoarding"></select>
-              </div>
-
-              <div>
-                <label for="cashSeats">Nombre de places</label>
-                <input id="cashSeats" type="number" min="1" max="24" value="1" />
-              </div>
-            </div>
-
-            <div class="price-grid">
-              <div class="price-box">
-                <span>Prix par place</span>
-                <strong id="cashFarePerSeat">—</strong>
-              </div>
-              <div class="price-box">
-                <span>Total cash à encaisser</span>
-                <strong id="cashFareTotal">—</strong>
-              </div>
-            </div>
-
-            <div class="tariff-note" id="cashFareNote">Tarif calculé à 60 FCFA/km, minimum 300 FCFA.</div><div class="logic-note">Le cash est autorisé seulement au point de montée actif. Dès que le bus est en route, l’encaissement est bloqué.</div>
-
-            <button class="primary" id="cashBtn">Encaisser cash et ajouter au bus</button>
-            </div>
-          </details>
+          </div>
+          <nav class="top-nav">
+            <a href="index.html">Accueil</a>
+            <a href="client.html">Réservation</a>
+            <a class="active" href="chauffeur.html">Chauffeur</a>
+            <a href="dispatch.html">Suivi des bus</a>
+            <a href="recettes.html">Recettes</a>
+          </nav>
         </div>
 
-        <div class="driver-right">
-          <article class="card compact-card">
-            <h2 class="section-title">Action chauffeur</h2>
-            <p class="muted">Un seul bouton principal, étape par étape.</p>
-
-            <div class="driver-action-grid">
-              <div class="driver-action-box">
-                <span>Étape actuelle</span>
-                <strong id="currentStep">—</strong>
+        <section class="driver-main">
+          <div class="driver-left">
+            <article class="card compact-card">
+              <h2>Choisir le bus</h2>
+              <label for="busSelect">Bus chauffeur</label>
+              <select id="busSelect"></select>
+              <div id="busInfo" style="margin-top:14px"></div>
+              <div id="timeline"></div>
+              <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+                <div class="stat"><span>Capacité</span><strong>24</strong></div>
+                <div class="stat"><span>Réservées</span><strong id="reservedTotal">0</strong></div>
+                <div class="stat"><span>Restantes</span><strong id="remainingTotal">24</strong></div>
               </div>
-              <div class="driver-action-box">
-                <span>Prochaine action</span>
-                <strong id="nextAction">—</strong>
+              <div class="price-box"><span>Caisse de ce bus</span><strong id="busRevenue">0 FCFA</strong></div>
+            </article>
+
+            <details class="accordion-card" open>
+              <summary>Paiement sur place</summary>
+              <div class="accordion-content">
+                <h2>Paiement sur place</h2>
+                <p class="muted">Pour un client présent à l’arrêt sans réservation préalable. Le chauffeur encaisse et ajoute directement le passager au bus.</p>
+                <div class="cash-grid">
+                  <div class="full">
+                    <label for="cashName">Nom ou note</label>
+                    <input id="cashName" type="text" placeholder="Ex : Passager cash / Famille 2 places" />
+                  </div>
+                  <div>
+                    <label for="cashBoarding">Point de montée</label>
+                    <select id="cashBoarding"></select>
+                  </div>
+                  <div>
+                    <label for="cashSeats">Nombre de places</label>
+                    <input id="cashSeats" type="number" min="1" max="24" value="1" />
+                  </div>
+                </div>
+                <div class="price-grid" style="margin-top:14px">
+                  <div class="price-box"><span>Prix par place</span><strong id="cashFarePerSeat">—</strong></div>
+                  <div class="price-box"><span>Total cash à encaisser</span><strong id="cashFareTotal">—</strong></div>
+                </div>
+                <div class="tariff-note" id="cashFareNote">Tarif calculé à partir des montants de votre fichier de base.</div>
+                <div class="logic-note">Le cash est autorisé uniquement au point de montée actif. Dès que le bus repart, l’encaissement est verrouillé.</div>
+                <button class="primary" id="cashBtn">Encaisser et ajouter au bus</button>
               </div>
-            </div>
+            </details>
+          </div>
 
-            <div class="stop-actions">
-              <div class="stop-action-box">
-                <span>Point de montée actif</span>
-                <strong id="activeBoardingStop">—</strong>
-              </div>
-              <div class="stop-action-box">
-                <span>Absents à cet arrêt</span>
-                <strong id="waitingAtStop">0</strong>
-              </div>
-            </div>
-
-            <button class="secondary" id="confirmAllBtn">Confirmer tout l’arrêt en Monté/payé</button>
-            <button class="primary-action" id="driverBtn">Action</button>
-            <button class="secondary" id="resetTripBtn">Réinitialiser la course seulement</button>
-            <button class="danger" id="resetBusBtn">Réinitialiser ce bus à zéro</button>
-
-            <div id="message" class="message"></div>
-          </article>
-
-          
-          <details class="accordion-card">
-            <summary>Incident / Retard</summary>
-            <div class="accordion-content incident-panel">
-              <h2>Signaler un incident</h2>
-              <p class="muted">Le chauffeur choisit la raison et l’estimation du retard. Le système calcule les passagers à prévenir.</p>
-
+          <div class="driver-right">
+            <article class="card compact-card">
+              <h2>Action chauffeur</h2>
+              <p class="muted">Un seul bouton principal, étape par étape.</p>
               <div class="cash-grid">
-                <div>
-                  <label for="incidentType">Type d’incident</label>
-                  <select id="incidentType">
-                    <option value="Retard / trafic">Retard / trafic</option>
-                    <option value="Accident">Accident</option>
-                    <option value="Contrôle de police">Contrôle de police</option>
-                    <option value="Panne mécanique">Panne mécanique</option>
-                    <option value="Vandalisme / trouble">Vandalisme / trouble</option>
-                    <option value="Autre">Autre</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label for="delayMinutes">Estimation du retard</label>
-                  <select id="delayMinutes">
-                    <option value="15">15 minutes</option>
-                    <option value="30">30 minutes</option>
-                    <option value="45">45 minutes</option>
-                    <option value="60">1 heure</option>
-                  </select>
-                </div>
-
-                <div class="full">
-                  <label for="incidentNote">Note optionnelle</label>
-                  <input id="incidentNote" type="text" placeholder="Ex : bouchons avant La Poste" />
-                </div>
+                <div class="driver-action-box"><span>Étape actuelle</span><strong id="currentStep">—</strong></div>
+                <div class="driver-action-box"><span>Prochaine action</span><strong id="nextAction">—</strong></div>
               </div>
+              <div class="stop-actions" style="margin-top:12px">
+                <div class="stop-action-box"><span>Point de montée actif</span><strong id="activeBoardingStop">—</strong></div>
+                <div class="stop-action-box"><span>Absents à cet arrêt</span><strong id="waitingAtStop">0</strong></div>
+              </div>
+              <button class="secondary" id="confirmAllBtn">Confirmer tout l’arrêt en Monté/payé</button>
+              <button class="primary-action" id="driverBtn">Action</button>
+              <button class="secondary" id="resetTripBtn">Réinitialiser la course seulement</button>
+              <button class="danger" id="resetBusBtn">Réinitialiser ce bus à zéro</button>
+              <div id="message" class="message"></div>
+            </article>
 
-              <div class="notify-box" id="notifyPreview">Aucun incident déclaré.</div>
+            <details class="accordion-card">
+              <summary>Incident / retard</summary>
+              <div class="accordion-content incident-panel">
+                <h2>Signaler un incident</h2>
+                <p class="muted">Le chauffeur choisit le type d’incident et l’estimation du retard. Le système calcule les passagers à prévenir.</p>
+                <div class="cash-grid">
+                  <div>
+                    <label for="incidentType">Type d’incident</label>
+                    <select id="incidentType">
+                      <option value="Retard / trafic">Retard / trafic</option>
+                      <option value="Accident">Accident</option>
+                      <option value="Contrôle de police">Contrôle de police</option>
+                      <option value="Panne mécanique">Panne mécanique</option>
+                      <option value="Vandalisme / trouble">Vandalisme / trouble</option>
+                      <option value="Autre">Autre</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="delayMinutes">Estimation du retard</label>
+                    <select id="delayMinutes">
+                      <option value="15">15 minutes</option>
+                      <option value="30">30 minutes</option>
+                      <option value="45">45 minutes</option>
+                      <option value="60">1 heure</option>
+                    </select>
+                  </div>
+                  <div class="full">
+                    <label for="incidentNote">Note optionnelle</label>
+                    <input id="incidentNote" type="text" placeholder="Ex : bouchons avant La Poste" />
+                  </div>
+                </div>
+                <div class="notify-box" id="notifyPreview">Aucun incident déclaré.</div>
+                <button class="warning" id="incidentBtn">Signaler incident et calculer les alertes</button>
+                <ul id="incidentLog" class="incident-log"></ul>
+              </div>
+            </details>
 
-              <button class="warning" id="incidentBtn">Signaler incident et calculer les alertes</button>
-              <ul id="incidentLog" class="incident-log"></ul>
-            </div>
-          </details>
+            <details class="accordion-card" open>
+              <summary>Liste des passagers</summary>
+              <div class="accordion-content">
+                <h2>Liste des passagers</h2>
+                <p class="muted">Les passagers sont triés automatiquement par point de montée.</p>
+                <div class="lock-note">Les actions Monté/payé sont actives seulement pour le point de montée courant.</div>
+                <div id="reservationTable"></div>
+              </div>
+            </details>
 
-<details class="accordion-card" open>
-            <summary>Liste des passagers</summary>
-            <div class="accordion-content">
-<h2>Liste des passagers</h2>
-            <p class="muted">Les passagers sont triés automatiquement par point de montée.</p>
-            <div class="lock-note">
-              Les boutons Monté/payé sont actifs seulement pour le point de montée actuel. Exemple : à Owendo, les passagers de La Poste sont bloqués jusqu’à l’arrivée à La Poste.
-            </div>
-            <div id="reservationTable"></div>
-            </div>
-          </details>
-
-          <details class="accordion-card" >
-            <summary>Journal de course</summary>
-            <div class="accordion-content">
-<h2>Journal</h2>
-            <ul id="tripLog" class="log"></ul>
-            </div>
-          </details>
-        </div>
+            <details class="accordion-card">
+              <summary>Journal de course</summary>
+              <div class="accordion-content">
+                <h2>Journal</h2>
+                <ul id="tripLog" class="log"></ul>
+              </div>
+            </details>
+          </div>
+        </section>
       </section>
-    </section>
-  </main>
+    </main>
+  </div>
 
   <script src="app.js"></script>
   <script>
@@ -468,7 +212,7 @@
 
       busInfo.innerHTML = `
         <span class="${status.cls}">${status.label}</span>
-        <h2>${busDef.label} — ${busDef.routeName}</h2>
+        <h3>${busDef.label} — ${busDef.routeName}</h3>
         <p class="small">${busDef.axis} · Départ ${busDef.startTime}</p>
       `;
 
@@ -517,17 +261,13 @@
       msg.className = "message " + (type === "error" ? "err" : type === "info" ? "info" : "ok");
     }
 
-
     function renderPassengerActions(busDef, busState){
       if(busState.reservations.length === 0){
         reservationTable.innerHTML = '<div class="empty">Aucun passager pour ce bus.</div>';
         return;
       }
 
-      const sorted = G10TP.sortedReservations
-        ? G10TP.sortedReservations(busDef, busState)
-        : [...busState.reservations];
-
+      const sorted = G10TP.sortedReservations ? G10TP.sortedReservations(busDef, busState) : [...busState.reservations];
       const activeStop = G10TP.currentBoardingStopForDeparture(busDef, busState);
 
       let html = `
@@ -546,25 +286,18 @@
       `;
 
       let currentGroup = "";
-
       sorted.forEach(r => {
         if(r.boarding !== currentGroup){
           currentGroup = r.boarding;
-          const groupSeats = busState.reservations
-            .filter(x => x.boarding === currentGroup)
-            .reduce((sum, x) => sum + Number(x.seats || 0), 0);
-
-          html += `
-            <tr class="group-row">
-              <td colspan="6">📍 Montée ${currentGroup} — ${groupSeats} place(s)</td>
-            </tr>
-          `;
+          const groupSeats = busState.reservations.filter(x => x.boarding === currentGroup).reduce((sum, x) => sum + Number(x.seats || 0), 0);
+          html += `<tr class="group-row"><td colspan="6">📍 Montée ${currentGroup} — ${groupSeats} place(s)</td></tr>`;
         }
 
         const status = G10TP.passengerStatusLabel(r);
         const notActiveStop = !activeStop || r.boarding !== activeStop;
         const disabledAction = notActiveStop ? "disabled" : "";
         const lockTitle = notActiveStop ? ` title="Action bloquée : point actif ${activeStop || 'aucun'}"` : "";
+        const paymentClass = r.paymentMethod === "Cash chauffeur" ? "payment-cash" : (r.paymentStatus === "Payé" ? "payment-paid" : "payment-pending");
 
         html += `
           <tr>
@@ -572,7 +305,7 @@
             <td>${escapeHtml(r.boarding)}</td>
             <td>${r.seats}</td>
             <td><span class="badge ${G10TP.passengerStatusClass(r)}">${escapeHtml(status)}</span></td>
-            <td><span class="badge ${r.paymentMethod === "Cash chauffeur" ? "payment-cash" : "payment-paid"}">${G10TP.formatMoney(r.totalAmount || 0)}</span></td>
+            <td><span class="badge ${paymentClass}">${r.paymentMethod} · ${G10TP.formatMoney(r.totalAmount || 0)}</span></td>
             <td>
               <select class="action-select" data-passenger="${r.id}" ${disabledAction}${lockTitle}>
                 <option value="">Action</option>
@@ -586,7 +319,6 @@
 
       html += "</tbody></table>";
       reservationTable.innerHTML = html;
-
       reservationTable.querySelectorAll("select[data-passenger]").forEach(select => {
         select.addEventListener("change", () => {
           if(!select.value) return;
@@ -611,45 +343,39 @@
       const busDef = G10TP.getBusDef(currentBusId());
       const busState = state.buses[currentBusId()];
       const activeStop = G10TP.currentBoardingStopForDeparture(busDef, busState);
-
       const seats = parseInt(document.getElementById("cashSeats").value, 10) || 0;
       const fare = G10TP.farePerSeat(currentBusId(), cashBoarding.value);
       const km = G10TP.kmForFare(currentBusId(), cashBoarding.value);
 
       document.getElementById("cashFarePerSeat").textContent = G10TP.formatMoney(fare);
       document.getElementById("cashFareTotal").textContent = fare === null ? "Tarif à confirmer" : G10TP.formatMoney(fare * seats);
+      document.getElementById("cashFareNote").textContent = fare === null
+        ? "Tarif à confirmer."
+        : `${km} km retenu(s) selon le fichier de base.`;
 
-      const cashAllowed = activeStop && cashBoarding.value === activeStop && fare !== null;
-
-      if(!activeStop){
-        document.getElementById("cashFareNote").textContent = "Cash fermé : le bus est en route ou la course est terminée.";
-      } else if(cashBoarding.value !== activeStop){
-        document.getElementById("cashFareNote").textContent = `Cash fermé pour ce point : le point de montée actif est ${activeStop}.`;
-      } else {
-        document.getElementById("cashFareNote").textContent = `${km} km retenu(s) × 60 FCFA/km. Cash ouvert uniquement à ${activeStop}.`;
-      }
-
-      document.getElementById("cashBtn").disabled = !cashAllowed;
+      const cashBtn = document.getElementById("cashBtn");
+      const closed = !activeStop || fare === null || seats < 1 || busState.stage > 0 && !activeStop;
+      cashBtn.disabled = closed;
     }
 
-    document.getElementById("cashBtn").addEventListener("click", () => {
-      const result = G10TP.addCashPassenger(currentBusId(), {
-        name:document.getElementById("cashName").value,
-        boarding:cashBoarding.value,
-        seats:parseInt(document.getElementById("cashSeats").value, 10)
-      });
-
-      render();
-      show(result.message, result.ok ? "ok" : "error");
-
-      if(result.ok){
-        document.getElementById("cashName").value = "";
-        document.getElementById("cashSeats").value = 1;
+    function updateIncidentPanel(){
+      const state = G10TP.loadState();
+      const busDef = G10TP.getBusDef(currentBusId());
+      const busState = state.buses[currentBusId()];
+      document.getElementById("notifyPreview").textContent = G10TP.delayLabel(busState) + " — Les passagers à prévenir seront calculés ici.";
+      const log = document.getElementById("incidentLog");
+      if(!busState.incidentLog || busState.incidentLog.length === 0){
+        log.innerHTML = "<li>Aucun incident déclaré pour ce bus.</li>";
+        return;
       }
-    });
+      log.innerHTML = busState.incidentLog.map(item => `<li><time>${item.time}</time><strong>${item.type}</strong> · +${item.addedDelay} min / total ${item.totalDelay} min · ${item.notifySeats} place(s) à prévenir</li>`).join("");
+    }
 
-    document.getElementById("cashSeats").addEventListener("input", updateCashFare);
-    cashBoarding.addEventListener("change", updateCashFare);
+    document.getElementById("driverBtn").addEventListener("click", () => {
+      G10TP.advanceTrip(currentBusId());
+      render();
+      show("Étape mise à jour.");
+    });
 
     document.getElementById("confirmAllBtn").addEventListener("click", () => {
       const result = G10TP.confirmAllAtCurrentStop(currentBusId());
@@ -657,74 +383,42 @@
       show(result.message, result.ok ? "ok" : "error");
     });
 
-
-    function updateIncidentPanel(){
-      const state = G10TP.loadState();
-      const busDef = G10TP.getBusDef(currentBusId());
-      const busState = state.buses[currentBusId()];
-      const notifyList = G10TP.passengersToNotifyForIncident(busDef, busState);
-      const notifySeats = notifyList.reduce((sum, r) => sum + Number(r.seats || 0), 0);
-
-      const delayText = G10TP.delayLabel(busState);
-      const updatedTerminal = busDef.stops
-        .map(stop => `${stop.name}: ${G10TP.addDelayToPlanTime(stop.time, busState.delayMinutes || 0)}`)
-        .join(" · ");
-
-      document.getElementById("notifyPreview").innerHTML = `
-        <strong>${delayText}</strong><br>
-        Passagers à prévenir maintenant : <strong>${notifySeats} place(s)</strong><br>
-        Heures ajustées : ${updatedTerminal}
-      `;
-
-      const log = busState.incidentLog || [];
-      const target = document.getElementById("incidentLog");
-      if(log.length === 0){
-        target.innerHTML = "<li>Aucun incident déclaré pour cette course.</li>";
-      } else {
-        target.innerHTML = log.map(item => `
-          <li>
-            <time>${item.time}</time>
-            <strong>${item.type}</strong> · +${item.addedDelay} min · total ${item.totalDelay} min<br>
-            ${item.notifySeats} place(s) à prévenir<br>
-            ${item.updatedTimes ? "Nouvelles heures : " + item.updatedTimes : ""}
-            ${item.note ? "<br>Note : " + item.note : ""}
-          </li>
-        `).join("");
-      }
-    }
-
-    document.getElementById("incidentBtn").addEventListener("click", () => {
-      const result = G10TP.signalIncident(currentBusId(), {
-        incidentType:document.getElementById("incidentType").value,
-        delayMinutes:Number(document.getElementById("delayMinutes").value),
-        note:document.getElementById("incidentNote").value
+    document.getElementById("cashBtn").addEventListener("click", () => {
+      const result = G10TP.addCashPassenger(currentBusId(), {
+        name: document.getElementById("cashName").value,
+        boarding: cashBoarding.value,
+        seats: parseInt(document.getElementById("cashSeats").value, 10)
       });
       render();
       show(result.message, result.ok ? "ok" : "error");
-      if(result.ok){
-        document.getElementById("incidentNote").value = "";
-      }
-    });
-
-    document.getElementById("driverBtn").addEventListener("click", () => {
-      G10TP.advanceTrip(currentBusId());
-      render();
-      show("Étape de course mise à jour.");
+      if(result.ok){ document.getElementById("cashName").value = ""; document.getElementById("cashSeats").value = 1; }
     });
 
     document.getElementById("resetTripBtn").addEventListener("click", () => {
       G10TP.resetTripOnly(currentBusId());
       render();
-      show("Course réinitialisée. Les passagers sont conservés.", "info");
+      show("Course réinitialisée pour ce bus.", "info");
     });
 
     document.getElementById("resetBusBtn").addEventListener("click", () => {
       G10TP.resetBusFull(currentBusId());
       render();
-      show("Bus réinitialisé : course, journal et passagers supprimés.");
+      show("Bus remis à zéro.", "info");
+    });
+
+    document.getElementById("incidentBtn").addEventListener("click", () => {
+      const result = G10TP.signalIncident(currentBusId(), {
+        incidentType: document.getElementById("incidentType").value,
+        delayMinutes: document.getElementById("delayMinutes").value,
+        note: document.getElementById("incidentNote").value
+      });
+      render();
+      show(result.message, result.ok ? "ok" : "error");
     });
 
     busSelect.addEventListener("change", render);
+    cashBoarding.addEventListener("change", updateCashFare);
+    document.getElementById("cashSeats").addEventListener("input", updateCashFare);
     render();
   </script>
 </body>

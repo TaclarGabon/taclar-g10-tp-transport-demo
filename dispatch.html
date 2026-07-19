@@ -3,45 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>G10 TP Transport — Dispatch</title>
+  <title>TACLAR Multiservices — Suivi des bus</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="page">
-    <section class="topbar">
-      <div class="brand">
-        <div class="logo">🚌</div>
-        <div>
-          <h1>Interface Dispatch</h1>
-          <p>Suivi global des 6 bus</p>
-        </div>
+  <div class="app-shell">
+    
+  <aside class="sidebar">
+    <div class="brand-block">
+      <div class="brand-icon">T</div>
+      <div>
+        <div class="brand-name">TACLAR</div>
+        <div class="brand-sub">MULTISERVICES</div>
       </div>
-      <nav class="nav">
-        <a href="index.html">Accueil</a>
-        <a href="client.html">Client</a>
-        <a href="chauffeur.html">Chauffeur</a>
-        <a class="active" href="dispatch.html">Dispatch</a>
-        <a href="recettes.html">Recettes</a>
-      </nav>
-    </section>
+    </div>
 
-    <article class="card">
-      <h2>Vue d’ensemble</h2>
-      <p class="muted">
-        Cette page permet de voir les bus, leurs statuts, les places disponibles et le détail des passagers par point de montée.
-      </p>
-      <div class="price-box">
-        <span>Recette shift</span>
-        <strong id="dispatchShiftTotal">0 FCFA</strong>
+    <nav class="side-nav">
+      <a class="side-link " href="index.html"><span class="icon">⌂</span><span>Accueil</span></a>
+      <a class="side-link " href="client.html"><span class="icon">🗓</span><span>Réservation</span></a>
+      <a class="side-link " href="chauffeur.html"><span class="icon">👤</span><span>Interface chauffeur</span></a>
+      <a class="side-link active" href="dispatch.html"><span class="icon">📍</span><span>Suivi des bus</span></a>
+      <a class="side-link " href="recettes.html"><span class="icon">📊</span><span>Recettes</span></a>
+      <a class="side-link " href="index.html"><span class="icon">⚙</span><span>Paramètres</span></a>
+    </nav>
+
+    <div class="side-spacer"></div>
+
+    <div class="side-note">
+      <strong>Plateforme de gestion</strong>
+      TACLAR Multiservices fournit la gestion des réservations, le suivi des bus et la supervision opérationnelle. La plateforme n’est pas un transporteur.
+    </div>
+
+    <div class="profile-box">
+      <div class="avatar">👤</div>
+      <div>
+        <div style="font-weight:800">Client</div>
+        <div style="font-size:13px;opacity:.92">+241 06 12 34 56</div>
+        <span class="small-green">● En ligne</span>
       </div>
-      <a class="nav active" style="display:inline-block;margin:10px 0 14px;text-decoration:none;" href="recettes.html">Ouvrir l’onglet Recettes</a>
-      <div class="grid-3" id="busCards"></div>
-      <button class="secondary" id="refreshBtn">Actualiser</button>
-      <button class="danger" id="resetEmptyBtn">Réinitialiser toute la démo à zéro</button>
-      <button class="danger" id="resetDemoBtn">Réinitialiser avec exemples Bus 1</button>
-      <div id="message" class="message"></div>
-    </article>
-  </main>
+    </div>
+
+    <a class="logout-link" href="index.html">↩ Déconnexion</a>
+  </aside>
+
+    <main class="content-area">
+      
+    <header class="topbar">
+      <div class="page-heading">
+        <h1>Suivi des bus</h1>
+        <p>Vue d’ensemble des 6 bus : état de la course, places réservées, places restantes et détail passagers par point de montée.</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="top-icon small-badge" data-count="3">🔔</div>
+        <div class="top-icon">✉</div>
+        <div class="top-icon">?</div>
+        <div class="user-chip">👤 <span>Exploitation</span> ▾</div>
+      </div>
+    </header>
+    
+      <article class="card">
+        <div class="summary-strip">
+          <div class="summary-main">
+            <div class="big-icon">◉</div>
+            <div>
+              <div class="small">Recette du shift</div>
+              <strong id="dispatchShiftTotal" style="display:block;font-size:28px;margin-top:6px">0 FCFA</strong>
+              <div class="small">Mise à jour selon les tournées terminées.</div>
+            </div>
+          </div>
+          <div class="stat"><span>Bus suivis</span><strong>6</strong></div>
+          <div class="stat"><span>Capacité / bus</span><strong>24</strong></div>
+          <div class="stat"><span>Onglet lié</span><strong><a href="recettes.html" style="text-decoration:none;color:inherit">Recettes ↗</a></strong></div>
+        </div>
+        <p class="muted" style="margin-top:16px">Cette page permet de voir les bus, leurs statuts, les places disponibles et le détail des passagers par point de montée.</p>
+        <div class="grid-3" id="busCards"></div>
+        <div class="quick-actions">
+          <button class="secondary" id="refreshBtn" style="width:auto">Actualiser</button>
+          <button class="danger" id="resetEmptyBtn" style="width:auto">Réinitialiser toute la démo à zéro</button>
+          <button class="danger" id="resetDemoBtn" style="width:auto">Réinitialiser avec exemples Bus 1</button>
+        </div>
+        <div id="message" class="message"></div>
+      </article>
+    </main>
+  </div>
 
   <div class="modal-backdrop" id="infoModal">
     <div class="modal">
@@ -52,7 +96,6 @@
         </div>
         <button class="close-btn" id="closeModalBtn">Fermer</button>
       </div>
-
       <div id="modalContent"></div>
     </div>
   </div>
@@ -76,7 +119,6 @@
         const occ = G10TP.occupancyStatus(b);
         const reserved = G10TP.totalReserved(b);
         const remaining = G10TP.remainingSeats(b);
-
         return `
           <div class="bus-card ${move.cardCls} ${occ.cardCls}">
             <div class="badge-row">
@@ -84,43 +126,19 @@
               <span class="${occ.cls}">${occ.label}</span>
               ${Number(b.delayMinutes || 0) > 0 ? `<span class="badge badge-full">Retard +${b.delayMinutes} min</span>` : ""}
             </div>
-
             <h3>${bus.label} ${remaining <= 0 ? "— Complet" : ""}</h3>
-
-            <p class="small">
-              <strong>${bus.axis}</strong><br>
-              ${bus.routeName}<br>
-              Départ ${bus.startTime}
-            </p>
-
+            <p class="small"><strong>${bus.axis}</strong><br>${bus.routeName}<br>Départ ${bus.startTime}</p>
             <p class="${move.lineCls}">${move.label}</p>
-
             <div class="stats" style="grid-template-columns:1fr 1fr">
-              <div class="stat ${occ.statReserved}">
-                <span>Réservées</span>
-                <strong>${reserved}</strong>
-              </div>
-              <div class="stat ${occ.statRemaining}">
-                <span>Restantes</span>
-                <strong>${remaining}</strong>
-              </div>
+              <div class="stat ${occ.statReserved}"><span>Réservées</span><strong>${reserved}</strong></div>
+              <div class="stat ${occ.statRemaining}"><span>Restantes</span><strong>${remaining}</strong></div>
             </div>
-
-            <div class="price-box">
-              <span>Total encaissé</span>
-              <strong>${G10TP.formatMoney(G10TP.busRevenue(b))}</strong>
-            </div>
-
-            <div class="dispatch-card-actions">
-              <button class="info-btn" data-bus-id="${bus.id}">Info passagers</button>
-            </div>
+            <div class="price-box"><span>Total encaissé</span><strong>${G10TP.formatMoney(G10TP.busRevenue(b))}</strong></div>
+            <div class="dispatch-card-actions"><button class="secondary info-btn" data-bus-id="${bus.id}">Info passagers</button></div>
           </div>
         `;
       }).join("");
-
-      document.querySelectorAll(".info-btn").forEach(btn => {
-        btn.addEventListener("click", () => openInfo(btn.dataset.busId));
-      });
+      document.querySelectorAll(".info-btn").forEach(btn => btn.addEventListener("click", () => openInfo(btn.dataset.busId)));
     }
 
     function openInfo(busId){
@@ -129,7 +147,6 @@
       const b = state.buses[busId];
       const move = G10TP.movementStatus(bus, b);
       const occ = G10TP.occupancyStatus(b);
-
       modalTitle.textContent = `${bus.label} — Détail passagers`;
       modalSubtitle.textContent = `${bus.axis} · ${bus.routeName} · ${move.label}`;
 
@@ -137,42 +154,28 @@
       const reserved = G10TP.totalReserved(b);
       const remaining = G10TP.remainingSeats(b);
       const revenue = G10TP.busRevenue(b);
-
       let html = `
         <div class="badge-row">
           <span class="${move.cls}">${move.label}</span>
           <span class="${occ.cls}">${occ.label}</span>
           ${Number(b.delayMinutes || 0) > 0 ? `<span class="badge badge-full">Retard +${b.delayMinutes} min</span>` : ""}
         </div>
-
         <div class="info-summary">
-          <div class="stat">
-            <span>Places réservées</span>
-            <strong>${reserved}</strong>
-          </div>
-          <div class="stat">
-            <span>Places restantes</span>
-            <strong>${remaining}</strong>
-          </div>
-          <div class="stat">
-            <span>Total encaissé</span>
-            <strong style="font-size:22px">${G10TP.formatMoney(revenue)}</strong>
-          </div>
+          <div class="stat"><span>Places réservées</span><strong>${reserved}</strong></div>
+          <div class="stat"><span>Places restantes</span><strong>${remaining}</strong></div>
+          <div class="stat"><span>Total encaissé</span><strong style="font-size:22px">${G10TP.formatMoney(revenue)}</strong></div>
         </div>
       `;
-
       if(b.reservations.length === 0){
         html += `<div class="empty">Aucun passager enregistré pour ce bus.</div>`;
         modalContent.innerHTML = html;
         modal.classList.add("open");
         return;
       }
-
       const statusCounts = {
         boarded: b.reservations.filter(r => G10TP.passengerStatusLabel(r) === "Monté et payé").reduce((sum,r)=>sum+Number(r.seats||0),0),
         absent: b.reservations.filter(r => G10TP.passengerStatusLabel(r) === "Absent").reduce((sum,r)=>sum+Number(r.seats||0),0)
       };
-
       html += `
         <h3 class="info-section-title">Résumé des statuts</h3>
         <div class="info-summary">
@@ -181,105 +184,37 @@
           <div class="stat"><span>Total</span><strong>${reserved}</strong></div>
         </div>
       `;
-
       const boardingStops = bus.stops.slice(0, -1).map(s => s.name);
-      html += `<h3 class="info-section-title">Résumé par point de montée</h3>`;
-      html += `<table>
-        <thead>
-          <tr>
-            <th>Point de montée</th>
-            <th>Destination</th>
-            <th>Places</th>
-            <th>Montant</th>
-          </tr>
-        </thead>
-        <tbody>
-      `;
-
+      html += `<h3 class="info-section-title">Résumé par point de montée</h3><table><thead><tr><th>Point de montée</th><th>Destination</th><th>Places</th><th>Montant</th></tr></thead><tbody>`;
       boardingStops.forEach(stopName => {
         const list = b.reservations.filter(r => r.boarding === stopName);
         const seats = list.reduce((sum, r) => sum + Number(r.seats || 0), 0);
         const amount = list.reduce((sum, r) => sum + Number(r.totalAmount || 0), 0);
-
         if(seats > 0){
-          html += `
-            <tr>
-              <td>${escapeHtml(stopName)}</td>
-              <td>${escapeHtml(terminal)}</td>
-              <td>${seats}</td>
-              <td><span class="badge payment-paid">${G10TP.formatMoney(amount)}</span></td>
-            </tr>
-          `;
+          html += `<tr><td>${escapeHtml(stopName)}</td><td>${escapeHtml(terminal)}</td><td>${seats}</td><td><span class="badge payment-paid">${G10TP.formatMoney(amount)}</span></td></tr>`;
         }
       });
-
       html += `</tbody></table>`;
-
       if((b.incidentLog || []).length > 0){
-        html += `<h3 class="info-section-title">Incidents / retards</h3>
-          <table>
-            <thead><tr><th>Heure</th><th>Incident</th><th>Retard</th><th>À prévenir</th></tr></thead>
-            <tbody>
-              ${(b.incidentLog || []).map(item => `
-                <tr>
-                  <td>${item.time}</td>
-                  <td>${item.type}</td>
-                  <td>+${item.addedDelay} min / total ${item.totalDelay} min</td>
-                  <td>${item.notifySeats} place(s)</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>`;
+        html += `<h3 class="info-section-title">Incidents / retards</h3><table><thead><tr><th>Heure</th><th>Incident</th><th>Retard</th><th>À prévenir</th></tr></thead><tbody>${(b.incidentLog || []).map(item => `<tr><td>${item.time}</td><td>${item.type}</td><td>+${item.addedDelay} min / total ${item.totalDelay} min</td><td>${item.notifySeats} place(s)</td></tr>`).join("")}</tbody></table>`;
       }
-
-      html += `<h3 class="info-section-title">Liste détaillée des passagers</h3>`;
-      html += `<div id="modalPassengerTable"></div>`;
-
+      html += `<h3 class="info-section-title">Liste détaillée des passagers</h3><div id="modalPassengerTable"></div>`;
       modalContent.innerHTML = html;
       const tableTarget = document.getElementById("modalPassengerTable");
       G10TP.renderReservationTable(tableTarget, bus, b);
-
       modal.classList.add("open");
     }
 
-    function closeModal(){
-      modal.classList.remove("open");
-    }
-
-    function show(text){
-      msg.textContent = text;
-      msg.className = "message ok";
-    }
-
-    function escapeHtml(value){
-      return String(value ?? "")
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
+    function closeModal(){ modal.classList.remove("open"); }
+    function show(text){ msg.textContent = text; msg.className = "message ok"; }
+    function escapeHtml(value){ return String(value ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
 
     document.getElementById("refreshBtn").addEventListener("click", render);
-    document.getElementById("resetEmptyBtn").addEventListener("click", () => {
-      G10TP.clearAllEmpty();
-      render();
-      show("Démo remise à zéro : aucun passager, aucune course en cours.");
-    });
-    document.getElementById("resetDemoBtn").addEventListener("click", () => {
-      G10TP.resetAll();
-      render();
-      show("Démo réinitialisée avec exemples sur Bus 1.");
-    });
-
+    document.getElementById("resetEmptyBtn").addEventListener("click", () => { G10TP.clearAllEmpty(); render(); show("Démo remise à zéro : aucun passager, aucune course en cours."); });
+    document.getElementById("resetDemoBtn").addEventListener("click", () => { G10TP.resetAll(); render(); show("Démo réinitialisée avec exemples sur Bus 1."); });
     document.getElementById("closeModalBtn").addEventListener("click", closeModal);
-    modal.addEventListener("click", (e) => {
-      if(e.target === modal) closeModal();
-    });
-    document.addEventListener("keydown", (e) => {
-      if(e.key === "Escape") closeModal();
-    });
-
+    modal.addEventListener("click", e => { if(e.target === modal) closeModal(); });
+    document.addEventListener("keydown", e => { if(e.key === "Escape") closeModal(); });
     render();
   </script>
 </body>
