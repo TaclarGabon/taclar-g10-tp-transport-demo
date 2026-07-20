@@ -76,7 +76,7 @@
           <div>
             <div id="routeInfo"></div>
             <div id="timeline"></div>
-            <div class="helper-note">Les axes et les tarifs sont ceux de votre fichier de base. Les réservations restent ouvertes tant que le bus n’a pas démarré.</div>
+            <div class="helper-note">Les axes et les tarifs sont ceux de votre fichier de base. Les réservations en ligne ferment automatiquement 30 minutes avant le départ du bus.</div>
           </div>
           <div class="visual-panel">
             <div class="mini-dashboard">
@@ -115,6 +115,10 @@
             <div>
               <label for="destination">Destination</label>
               <input id="destination" disabled />
+            </div>
+            <div>
+              <label for="travelDate">Date du voyage</label>
+              <input id="travelDate" type="date" />
             </div>
             <div>
               <label for="seats">Nombre de places</label>
@@ -179,6 +183,7 @@
     const routeInfo = document.getElementById("routeInfo");
     const msg = document.getElementById("message");
     const waLink = document.getElementById("whatsappLink");
+    const travelDate = document.getElementById("travelDate");
 
     G10TP.fillBusSelect(busSelect);
 
@@ -198,6 +203,49 @@
       document.getElementById("fareNote").textContent = fare === null
         ? "Tarif à confirmer après validation de la distance."
         : `${km} km retenu(s) selon le fichier de base.`;
+    }
+
+    function gabonNowParts(){
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone:'Africa/Libreville', year:'numeric', month:'2-digit', day:'2-digit',
+        hour:'2-digit', minute:'2-digit', hour12:false
+      }).formatToParts(new Date()).reduce((acc,p) => (acc[p.type]=p.value, acc), {});
+      return {
+        date:`${parts.year}-${parts.month}-${parts.day}`,
+        minutes:Number(parts.hour) * 60 + Number(parts.minute)
+      };
+    }
+
+    function addDaysIso(isoDate, days){
+      const d = new Date(`${isoDate}T12:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + days);
+      return d.toISOString().slice(0,10);
+    }
+
+    function timeToMinutes(label){
+      const match = String(label || '').match(/^(\d{1,2})h(\d{2})$/i);
+      return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+    }
+
+    function reservationWindow(busDef){
+      const now = gabonNowParts();
+      const selectedDate = travelDate.value;
+      const departureMinutes = timeToMinutes(busDef.startTime);
+      const cutoffMinutes = departureMinutes - 30;
+      if(!selectedDate) return {open:false, reason:'Choisissez la date du voyage.', cutoff:'—'};
+      if(selectedDate < now.date) return {open:false, reason:'Cette date est déjà passée.', cutoff:subtractMinutes(busDef.startTime,30)};
+      if(selectedDate > now.date) return {open:true, reason:'Réservation en ligne ouverte.', cutoff:subtractMinutes(busDef.startTime,30)};
+      if(now.minutes >= departureMinutes) return {open:false, reason:'Ce bus est déjà parti.', cutoff:subtractMinutes(busDef.startTime,30)};
+      if(now.minutes >= cutoffMinutes) return {open:false, reason:`Réservation en ligne clôturée depuis ${subtractMinutes(busDef.startTime,30)}. Présentez-vous sur place, sous réserve de places disponibles.`, cutoff:subtractMinutes(busDef.startTime,30)};
+      return {open:true, reason:`Réservation possible jusqu’à ${subtractMinutes(busDef.startTime,30)}.`, cutoff:subtractMinutes(busDef.startTime,30)};
+    }
+
+    function setInitialTravelDate(){
+      const now = gabonNowParts();
+      travelDate.min = now.date;
+      const busDef = G10TP.getBusDef(currentBusId());
+      const cutoff = timeToMinutes(busDef.startTime) - 30;
+      travelDate.value = now.minutes >= cutoff ? addDaysIso(now.date,1) : now.date;
     }
 
     function render(){
@@ -221,7 +269,7 @@
           <div class="kpi"><div class="small">Départ prévu</div><strong>${busDef.startTime}</strong></div>
           <div class="kpi"><div class="small">Destination finale</div><strong>${G10TP.terminalName(busDef)}</strong></div>
           <div class="kpi"><div class="small">Axe</div><strong>${busDef.axis}</strong></div>
-          <div class="kpi"><div class="small">Fenêtre conseillée</div><strong>1h avant départ</strong></div>
+          <div class="kpi"><div class="small">Clôture en ligne</div><strong id="cutoffDisplay">30 min avant</strong></div>
         </div>
       `;
 
@@ -232,8 +280,18 @@
 
       updateFare();
       const fareReady = G10TP.farePerSeat(currentBusId(), boarding.value) !== null;
-      const closed = busState.stage > 0 || G10TP.remainingSeats(busState) <= 0 || !fareReady;
+      const windowStatus = reservationWindow(busDef);
+      const cutoffDisplay = document.getElementById('cutoffDisplay');
+      if(cutoffDisplay) cutoffDisplay.textContent = windowStatus.cutoff;
+      const closed = busState.stage > 0 || G10TP.remainingSeats(busState) <= 0 || !fareReady || !windowStatus.open;
       document.getElementById("reserveBtn").disabled = closed;
+      document.getElementById("reserveBtn").textContent = windowStatus.open ? 'Réserver et payer votre place' : 'Réservation en ligne clôturée';
+      if(!windowStatus.open){
+        show(windowStatus.reason, 'info');
+      } else if(msg.classList.contains('info')) {
+        msg.className = 'message';
+        msg.textContent = '';
+      }
       waLink.textContent = 'WhatsApp non prêt';
       waLink.href = '#';
     }
@@ -243,6 +301,16 @@
       msg.className = "message " + (type === "error" ? "err" : type === "info" ? "info" : "ok");
     }
 
+    function subtractMinutes(timeLabel, minutes){
+      const match = String(timeLabel || '').match(/^(\d{1,2})h(\d{2})$/i);
+      if(!match) return timeLabel;
+      let total = Number(match[1]) * 60 + Number(match[2]) - Number(minutes || 0);
+      total = ((total % 1440) + 1440) % 1440;
+      const hours = Math.floor(total / 60);
+      const mins = total % 60;
+      return `${String(hours).padStart(2,'0')}h${String(mins).padStart(2,'0')}`;
+    }
+
     function buildWhatsappLink(result){
       const busDef = G10TP.getBusDef(currentBusId());
       const name = (document.getElementById('name').value || '').trim();
@@ -250,6 +318,7 @@
       const seats = parseInt(document.getElementById('seats').value, 10) || 1;
       const boardingStop = busDef.stops.find(stop => stop.name === boarding.value);
       const boardingTime = boardingStop ? boardingStop.time : busDef.startTime;
+      const arrivalTime = subtractMinutes(boardingTime, 15);
       const amount = G10TP.formatMoney(result.total);
       const paymentLine = result.paymentMethod === 'Airtel Money'
         ? `Paiement Airtel Money (simulation démo) : ${amount}`
@@ -258,6 +327,7 @@
         'TACLAR G10 — Nouvelle réservation',
         `Nom : ${name}`,
         `Téléphone : ${phone}`,
+        `Date : ${travelDate.value}`,
         `Bus : ${busDef.label}`,
         `Axe : ${busDef.routeName}`,
         `Montée : ${boarding.value} à ${boardingTime}`,
@@ -265,7 +335,7 @@
         `Places : ${seats}`,
         paymentLine,
         `Référence : ${result.ref}`,
-        `Consigne client : se présenter 15 minutes avant, soit à ${boardingTime}.`
+        `Consigne client : se présenter 15 minutes avant, soit à ${arrivalTime}.`
       ].join('\n');
       const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`;
       waLink.href = url;
@@ -274,12 +344,19 @@
     }
 
     document.getElementById("reserveBtn").addEventListener("click", () => {
+      const busDef = G10TP.getBusDef(currentBusId());
+      const windowStatus = reservationWindow(busDef);
+      if(!windowStatus.open){
+        show(windowStatus.reason, 'error');
+        return;
+      }
       const seats = parseInt(document.getElementById("seats").value, 10) || 1;
       const result = G10TP.addReservation(currentBusId(), {
         name:document.getElementById("name").value,
         phone:document.getElementById("phone").value,
         boarding:boarding.value,
         seats:seats,
+        travelDate: travelDate.value,
         paymentMethod: currentPaymentMethod()
       });
       if(result.ok){
@@ -294,10 +371,12 @@
       }
     });
 
-    busSelect.addEventListener("change", render);
+    busSelect.addEventListener("change", () => { setInitialTravelDate(); render(); });
+    travelDate.addEventListener("change", render);
     boarding.addEventListener("change", updateFare);
     document.getElementById("seats").addEventListener("input", updateFare);
     document.querySelectorAll('input[name="paymentMethod"]').forEach(r => r.addEventListener('change', updateFare));
+    setInitialTravelDate();
     render();
   </script>
   <script src="auth.js"></script>
