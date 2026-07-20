@@ -373,3 +373,10 @@ td{padding:11px 10px;border-bottom:1px solid var(--line);font-size:14px;vertical
 .notification-item pre{white-space:pre-wrap;margin:0;font-family:inherit;line-height:1.55;color:var(--text);background:#f7fbfb;border-radius:14px;padding:13px;border:1px solid var(--line)}
 .notification-item button{width:auto;margin-top:10px;padding:9px 12px;font-size:13px}
 @media(max-width:640px){.notification-toolbar,.notification-item-head{align-items:flex-start;flex-direction:column}.topbar-actions{width:auto}.topbar-actions .user-chip{width:auto}}
+
+
+/* Direction — actions finales */
+.direction-actions{display:flex;gap:12px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.direction-actions button{width:auto;margin-top:0}
+.reset-demo-btn{min-width:235px}
+@media(max-width:760px){.direction-actions{width:100%;justify-content:stretch}.direction-actions button{width:100%}}

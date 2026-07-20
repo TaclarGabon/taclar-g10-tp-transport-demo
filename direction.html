@@ -64,7 +64,10 @@
             <h2>Résumé par bus</h2>
             <p class="muted">Les données se mettent à jour automatiquement quand les chauffeurs clôturent leurs tournées.</p>
           </div>
-          <button class="primary-action export-daily-btn" id="dailyExcelBtn">Télécharger le rapport quotidien Excel</button>
+          <div class="direction-actions">
+            <button class="primary-action export-daily-btn" id="dailyExcelBtn">Télécharger le rapport quotidien Excel</button>
+            <button class="danger reset-demo-btn" id="resetWholeDemoBtn">Réinitialiser toute la démo</button>
+          </div>
         </div>
         <div id="message" class="message"></div>
         <div class="bus-revenue-grid" id="busRevenueCards"></div>
@@ -113,9 +116,21 @@
       html += `</tbody></table>`;
       document.getElementById("tripTable").innerHTML = html;
     }
-    function show(text){ message.textContent = text; message.className = "message ok"; }
-    
-    
+    function show(text, type = "ok"){
+      message.textContent = text;
+      message.className = "message " + (type === "error" ? "err" : type === "info" ? "info" : "ok");
+    }
+
+    function resetWholeDemo(){
+      const confirmed = window.confirm(
+        "Réinitialiser toute la démo ?\n\nToutes les réservations, notifications, paiements simulés, statuts des bus, incidents, recettes et historiques seront supprimés."
+      );
+      if(!confirmed) return;
+
+      G10TP.clearAllEmpty();
+      render();
+      show("Toute la démo a été réinitialisée. Tous les bus, réservations, messages et rapports sont revenus à zéro.");
+    }
 
     function escapeXml(value){
       return String(value ?? "")
@@ -192,6 +207,7 @@
     }
 
     document.getElementById("dailyExcelBtn").addEventListener("click", exportDailyExcel);
+    document.getElementById("resetWholeDemoBtn").addEventListener("click", resetWholeDemo);
 
     render();
   </script>
