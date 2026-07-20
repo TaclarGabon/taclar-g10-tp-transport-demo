@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TACLAR Multiservices — Connexion démo</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body{min-height:100vh;display:grid;place-items:center;padding:24px}
+    .login-shell{width:min(980px,100%);background:#fff;border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);padding:28px}
+    .login-brand{display:flex;align-items:center;gap:14px;margin-bottom:22px}
+    .role-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    .role-card{display:block;text-decoration:none;color:var(--text);border:1px solid var(--line);border-radius:20px;padding:22px;background:#fbffff;text-align:center;transition:.18s ease}
+    .role-card:hover{transform:translateY(-2px);border-color:var(--teal);box-shadow:0 12px 28px rgba(17,45,53,.08)}
+    .role-icon{width:64px;height:64px;border-radius:18px;background:#eaf7f7;color:var(--teal-dark);display:grid;place-items:center;margin:0 auto 14px;font-size:30px}
+    .role-card strong{display:block;font-size:20px;margin-bottom:8px}
+    @media(max-width:850px){.role-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:520px){.role-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="login-shell">
+    <div class="login-brand">
+      <div class="brand-icon">T</div>
+      <div><div class="brand-name">TACLAR</div><div class="brand-sub" style="color:var(--teal-dark)">MULTISERVICES — DÉMO G10</div></div>
+    </div>
+    <h1 style="margin:0 0 8px">Choisir le profil de connexion</h1>
+    <p class="muted">La déconnexion ramène maintenant sur cette page. Choisis le rôle à utiliser pour poursuivre la démonstration.</p>
+    <section class="role-grid">
+      <a class="role-card" href="client.html" data-login-role="Client"><div class="role-icon">👤</div><strong>Client</strong><span class="small">Réserver une place.</span></a>
+      <a class="role-card" href="chauffeur.html" data-login-role="Chauffeur"><div class="role-icon">◉</div><strong>Chauffeur</strong><span class="small">Gérer la course et les passagers.</span></a>
+      <a class="role-card" href="dispatch.html" data-login-role="Chef d’exploitation"><div class="role-icon">▥</div><strong>Chef d’exploitation</strong><span class="small">Suivre les bus et les réservations.</span></a>
+      <a class="role-card" href="direction.html" data-login-role="Direction"><div class="role-icon">◔</div><strong>Direction</strong><span class="small">Consulter les recettes et rapports.</span></a>
+    </section>
+    <div style="margin-top:20px"><a class="chip-btn" href="index.html">← Retour à l’accueil</a></div>
+  </main>
+  <script src="auth.js"></script>
+</body>
+</html>

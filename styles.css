@@ -351,3 +351,10 @@ td{padding:11px 10px;border-bottom:1px solid var(--line);font-size:14px;vertical
   .topbar-actions .user-chip{width:100%;justify-content:center}
   .whatsapp-box{flex-direction:column;align-items:flex-start}
 }
+
+.section-head-actions{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:10px}
+.excel-btn{width:auto;margin:0;background:#137a43;color:#fff;border:1px solid #0d6737;padding:13px 18px;box-shadow:0 8px 18px rgba(19,122,67,.16)}
+.excel-btn:hover{background:#0f6d3a}
+@media(max-width:700px){.section-head-actions{display:block}.excel-btn{width:100%;margin-top:12px}}
+
+.section-head-inline{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;flex-wrap:wrap}.section-head-inline h2{margin-bottom:6px}.export-daily-btn{width:auto;min-width:300px;margin-top:0}@media(max-width:700px){.export-daily-btn{width:100%;min-width:0}}

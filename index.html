@@ -20,11 +20,10 @@
 
     <nav class="side-nav">
       <a class="side-link active" href="index.html"><span class="icon">⌂</span><span>Accueil</span></a>
-      <a class="side-link " href="client.html"><span class="icon">🗓</span><span>Réservation</span></a>
-      <a class="side-link " href="chauffeur.html"><span class="icon">👤</span><span>Interface chauffeur</span></a>
-      <a class="side-link " href="dispatch.html"><span class="icon">📍</span><span>Suivi des bus</span></a>
-      <a class="side-link " href="recettes.html"><span class="icon">📊</span><span>Recettes</span></a>
-      <a class="side-link " href="index.html"><span class="icon">⚙</span><span>Paramètres</span></a>
+      <a class="side-link " href="client.html"><span class="icon">👤</span><span>Client</span></a>
+      <a class="side-link " href="chauffeur.html"><span class="icon">◉</span><span>Chauffeur</span></a>
+      <a class="side-link " href="dispatch.html"><span class="icon">▥</span><span>Chef d’exploitation</span></a>
+      <a class="side-link " href="direction.html"><span class="icon">◔</span><span>Direction</span></a>
     </nav>
 
     <div class="side-spacer"></div>
@@ -37,117 +36,37 @@
     <div class="profile-box">
       <div class="avatar">👤</div>
       <div>
-        <div style="font-weight:800">Client</div>
-        <div style="font-size:13px;opacity:.92">+241 06 12 34 56</div>
-        <span class="small-green">● En ligne</span>
+        <div style="font-weight:800" data-role-name>Visiteur</div>
+        <div style="font-size:13px;opacity:.92">+1 778 808 2048</div>
+        <span class="small-green" data-role-status>● En ligne</span>
       </div>
     </div>
 
-    <a class="logout-link" href="index.html">↩ Déconnexion</a>
+    <a class="logout-link js-logout" href="login.html">↩ Déconnexion</a>
   </aside>
 
     <main class="content-area">
-      
-    <header class="topbar">
-      <div class="page-heading">
-        <h1>Accueil de la démo</h1>
-        <p>Démonstration de la plateforme TACLAR Multiservices pour la gestion des réservations, le suivi des bus, l’interface chauffeur et le contrôle des recettes.</p>
-      </div>
-      <div class="topbar-actions">
-        <div class="top-icon small-badge" data-count="3">🔔</div>
-        <div class="top-icon">✉</div>
-        <div class="top-icon">?</div>
-        <div class="user-chip">👤 <span>Admin</span> ▾</div>
-      </div>
-    </header>
-    
+      <header class="topbar">
+        <div class="page-heading">
+          <h1>Accueil</h1>
+          <p>Bienvenue sur la plateforme TACLAR Multiservices — Démonstration G10.</p>
+        </div>
+      </header>
 
-      <section class="card hero-grid">
-        <div>
-          <h2>Plateforme de gestion & suivi</h2>
-          <p class="muted">Cette démonstration est pensée pour être présentée à un opérateur comme GEDIS. Elle montre un portail propre, lisible et professionnel, sans faire croire que TACLAR est transporteur.</p>
-          <div class="summary-strip">
-            <div class="summary-main">
-              <div class="big-icon">◎</div>
-              <div>
-                <div class="small">Module principal</div>
-                <strong style="display:block;font-size:22px;margin-top:6px">Réservation en ligne + supervision</strong>
-                <div class="small">Réservation site, chauffeur, suivi bus et recettes</div>
-              </div>
-            </div>
-            <div class="stat"><span>Interfaces</span><strong>4</strong></div>
-            <div class="stat"><span>Bus suivis</span><strong>6</strong></div>
-            <div class="stat"><span>Capacité bus</span><strong>24</strong></div>
-          </div>
-          <div class="quick-actions">
-            <a class="chip-btn primary" href="client.html">➜ Ouvrir la réservation</a>
-            <a class="chip-btn" href="chauffeur.html">Interface chauffeur</a>
-            <a class="chip-btn" href="dispatch.html">Suivi des bus</a>
-          </div>
-        </div>
-        <div class="visual-panel">
-          <div class="mini-dashboard">
-            <div class="mini-cards">
-              <div class="mini-card"><div class="small">Réservations en temps réel</div><strong>124 aujourd’hui</strong></div>
-              <div class="mini-card route-map">
-                <div class="line"></div>
-                <div class="stop-pin stop1"></div>
-                <div class="stop-pin stop2"></div>
-                <div class="stop-pin stop3"></div>
-              </div>
-              <div class="mini-card"><div class="small">Paiements</div><strong>48 000 FCFA</strong></div>
-            </div>
-            <div class="mini-phone">
-              <div class="check">✓</div>
-              <strong style="font-size:24px;margin-bottom:8px;color:var(--teal-dark)">Réservation confirmée</strong>
-              <div class="muted" style="text-align:center">Le client réserve sur le site, TACLAR suit la demande et l’opérateur exploite la course.</div>
-            </div>
-          </div>
-        </div>
+      <section class="card">
+        <h2>Plateforme complète de gestion et de suivi</h2>
+        <p class="muted">Gérez les réservations, les courses, le suivi opérationnel et les rapports depuis une interface unique. TACLAR Multiservices fournit un outil de gestion et de supervision ; la plateforme n’est pas un transporteur.</p>
       </section>
 
-      <section class="grid-3">
-        <article class="card bus-card">
-          <h3>Réservation</h3>
-          <p class="small">Choix de l’axe, du point de montée, du nombre de places et du mode de paiement.</p>
-          <a class="chip-btn primary" href="client.html">Ouvrir</a>
-        </article>
-        <article class="card bus-card">
-          <h3>Interface chauffeur</h3>
-          <p class="small">Gestion de la course, embarquement, encaissement sur place, incidents et journal.</p>
-          <a class="chip-btn primary" href="chauffeur.html">Ouvrir</a>
-        </article>
-        <article class="card bus-card">
-          <h3>Suivi des bus</h3>
-          <p class="small">Vision globale des 6 bus, des places réservées et des passagers par point de montée.</p>
-          <a class="chip-btn primary" href="dispatch.html">Ouvrir</a>
-        </article>
-      </section>
-
-      <section class="grid">
-        <article class="card">
-          <h2>Logique de démonstration</h2>
-          <div class="summary-message">Réservations possibles directement sur le site. Pour une vraie exploitation multi-appareils, il faudra ensuite connecter une base en ligne (Firebase ou équivalent) et le service de paiement / notification voulu.</div>
-          <button class="danger" id="resetEmpty">Réinitialiser toute la démo à zéro</button>
-          <div id="message" class="message"></div>
-        </article>
-        <article class="card">
-          <h2>Recommandation métier</h2>
-          <p class="muted">Pour la version commerciale, il est préférable d’ouvrir la réservation officielle <strong>1 heure avant le départ</strong> et de la fermer au démarrage du bus. Le chauffeur ou l’exploitation peut donc activer le bus comme « disponible » avant le départ.</p>
-          <div class="price-box"><span>Conseil opérationnel</span><strong>Ouverture conseillée : 05h30 pour un départ à 06h30</strong></div>
-        </article>
+      <section class="grid-4">
+        <article class="card bus-card"><h3>Client</h3><p class="small">Réserver et payer une place sur les lignes disponibles.</p><a class="chip-btn primary" href="client.html">Ouvrir</a></article>
+        <article class="card bus-card"><h3>Chauffeur</h3><p class="small">Gérer la course, les passagers et les encaissements.</p><a class="chip-btn primary" href="chauffeur.html">Ouvrir</a></article>
+        <article class="card bus-card"><h3>Chef d’exploitation</h3><p class="small">Suivre les bus, les réservations et les axes.</p><a class="chip-btn primary" href="dispatch.html">Ouvrir</a></article>
+        <article class="card bus-card"><h3>Direction</h3><p class="small">Consulter les recettes et les rapports quotidiens.</p><a class="chip-btn primary" href="direction.html">Ouvrir</a></article>
       </section>
     </main>
   </div>
-
   <script src="app.js"></script>
-  <script>
-    document.getElementById("resetEmpty").addEventListener("click", () => {
-      G10TP.clearAllEmpty();
-      const m = document.getElementById("message");
-      m.textContent = "Démo réinitialisée : tous les bus et toutes les réservations sont à zéro.";
-      m.className = "message ok";
-    });
-  </script>
+  <script src="auth.js"></script>
 </body>
 </html>

@@ -281,8 +281,13 @@ function addReservation(busId, data){
   const seats = Number(data.seats);
   const phone = (data.phone || "").trim();
   const providedName = (data.name || "").trim();
-  const fallbackName = phone ? `Client ${phone.slice(-4)}` : "Client";
-  const displayName = providedName || fallbackName;
+  const displayName = providedName;
+  if(!displayName){
+    return {ok:false, message:"Merci d’entrer le nom du client."};
+  }
+  if(!phone){
+    return {ok:false, message:"Merci d’entrer le numéro de téléphone du client."};
+  }
   if(!Number.isInteger(seats) || seats < 1){
     return {ok:false, message:"Merci d’entrer un nombre de places valide."};
   }
@@ -317,7 +322,15 @@ function addReservation(busId, data){
     boardingStatus:"Absent"
   });
   saveState(state);
-  return {ok:true, message:`Réservation confirmée : ${seats} place(s) depuis ${data.boarding}. ${paymentMethod === "Paiement sur place" ? "Paiement sur place sélectionné." : "Paiement validé."} Référence : ${ref}`};
+  return {
+    ok:true,
+    ref,
+    total,
+    fare,
+    paymentMethod,
+    paymentStatus,
+    message:`Réservation confirmée : ${seats} place(s) depuis ${data.boarding}. ${paymentMethod === "Paiement sur place" ? "Paiement sur place sélectionné." : "Paiement démo validé."} Référence : ${ref}`
+  };
 }
 
 function sortedReservations(busDef, busState){

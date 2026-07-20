@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TACLAR Multiservices — Direction</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    
+  <aside class="sidebar">
+    <div class="brand-block">
+      <div class="brand-icon">T</div>
+      <div>
+        <div class="brand-name">TACLAR</div>
+        <div class="brand-sub">MULTISERVICES</div>
+      </div>
+    </div>
+
+    <nav class="side-nav">
+      <a class="side-link " href="index.html"><span class="icon">⌂</span><span>Accueil</span></a>
+      <a class="side-link " href="client.html"><span class="icon">👤</span><span>Client</span></a>
+      <a class="side-link " href="chauffeur.html"><span class="icon">◉</span><span>Chauffeur</span></a>
+      <a class="side-link " href="dispatch.html"><span class="icon">▥</span><span>Chef d’exploitation</span></a>
+      <a class="side-link active" href="direction.html"><span class="icon">◔</span><span>Direction</span></a>
+    </nav>
+
+    <div class="side-spacer"></div>
+
+    <div class="side-note">
+      <strong>Plateforme de gestion</strong>
+      TACLAR Multiservices fournit la gestion des réservations, le suivi des bus et la supervision opérationnelle. La plateforme n’est pas un transporteur.
+    </div>
+
+    <div class="profile-box">
+      <div class="avatar">👤</div>
+      <div>
+        <div style="font-weight:800" data-role-name>Direction</div>
+        <div style="font-size:13px;opacity:.92">+1 778 808 2048</div>
+        <span class="small-green" data-role-status>● En ligne</span>
+      </div>
+    </div>
+
+    <a class="logout-link js-logout" href="login.html">↩ Déconnexion</a>
+  </aside>
+
+    <main class="content-area">
+      
+    <header class="topbar">
+      <div class="page-heading">
+        <h1>Direction</h1>
+        <p>Recettes, rapports et pilotage de l’exploitation.</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="user-chip">👤 <span>Direction</span></div>
+      </div>
+    </header>
+    
+      <article class="card"><h2>Gestion future des axes et tarifs</h2><p class="muted">Emplacement prévu pour créer, modifier ou désactiver des axes, saisir les distances, définir les tarifs et conserver la méthode de calcul. Cette fonction est indiquée comme prochaine étape commerciale et ne modifie pas les tarifs de la démonstration actuelle.</p></article>
+<article class="card">
+        <div class="section-head-inline">
+          <div>
+            <h2>Résumé par bus</h2>
+            <p class="muted">Les données se mettent à jour automatiquement quand les chauffeurs clôturent leurs tournées.</p>
+          </div>
+          <button class="primary-action export-daily-btn" id="dailyExcelBtn">Télécharger le rapport quotidien Excel</button>
+        </div>
+        <div id="message" class="message"></div>
+        <div class="bus-revenue-grid" id="busRevenueCards"></div>
+      </article>
+
+      <article class="card">
+        <h2>Détail des tournées terminées</h2>
+        <div class="revenue-table-wrap" id="tripTable"></div>
+      </article>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const message = document.getElementById("message");
+    function render(){
+      const state = G10TP.loadState();
+      const trips = state.completedTrips || [];
+      renderBusCards(state);
+      renderTripTable(state);
+    }
+    function renderBusCards(state){
+      const rows = G10TP.tripsByBus(state);
+      document.getElementById("busRevenueCards").innerHTML = rows.map(row => `
+        <div class="bus-card ${row.count > 0 ? 'bus-done' : 'bus-open'}">
+          <h3>${row.busLabel}</h3>
+          <p class="small">${row.routeName}</p>
+          <div class="stats" style="grid-template-columns:1fr 1fr">
+            <div class="stat"><span>Tournées</span><strong>${row.count}</strong></div>
+            <div class="stat"><span>Places</span><strong>${row.seats}</strong></div>
+          </div>
+          <div class="price-box"><span>Recette bus</span><strong>${G10TP.formatMoney(row.revenue)}</strong></div>
+        </div>
+      `).join("");
+    }
+    function renderTripTable(state){
+      const trips = state.completedTrips || [];
+      if(trips.length === 0){
+        document.getElementById("tripTable").innerHTML = `<div class="empty">Aucune tournée terminée pour le moment.</div>`;
+        return;
+      }
+      let html = `<table><thead><tr><th>Heure fin</th><th>Bus</th><th>Axe</th><th>Trajet</th><th>Places</th><th>Montés</th><th>Absents</th><th>Retard</th><th>Recette</th></tr></thead><tbody>`;
+      trips.forEach(t => {
+        html += `<tr><td>${t.completedAt}</td><td><strong>${t.busLabel}</strong></td><td>${t.axis}</td><td>${t.routeName}</td><td>${t.reservedSeats}</td><td><span class="shift-badge">${t.boardedSeats}</span></td><td><span class="shift-badge ${t.absentSeats > 0 ? 'red' : ''}">${t.absentSeats}</span></td><td><span class="shift-badge ${t.delayMinutes > 0 ? 'warn' : ''}">${t.delayMinutes} min</span></td><td><strong>${G10TP.formatMoney(t.revenue)}</strong></td></tr>`;
+      });
+      html += `</tbody></table>`;
+      document.getElementById("tripTable").innerHTML = html;
+    }
+    function show(text){ message.textContent = text; message.className = "message ok"; }
+    
+    
+
+    function escapeXml(value){
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function exportDailyExcel(){
+      const state = G10TP.loadState();
+      const trips = state.completedTrips || [];
+      const rows = G10TP.tripsByBus(state);
+      const today = new Date();
+      const dateLabel = today.toLocaleDateString("fr-FR");
+      const fileDate = today.toISOString().slice(0,10);
+      const totalRevenue = rows.reduce((sum, row) => sum + Number(row.revenue || 0), 0);
+      const totalSeats = rows.reduce((sum, row) => sum + Number(row.seats || 0), 0);
+      const totalTrips = rows.reduce((sum, row) => sum + Number(row.count || 0), 0);
+
+      const summaryRows = rows.map(row => `
+        <tr>
+          <td>${escapeXml(row.busLabel)}</td>
+          <td>${escapeXml(row.routeName)}</td>
+          <td>${row.count}</td>
+          <td>${row.seats}</td>
+          <td>${row.revenue}</td>
+        </tr>`).join("");
+
+      const detailRows = trips.length ? trips.map(t => `
+        <tr>
+          <td>${escapeXml(t.completedAt)}</td>
+          <td>${escapeXml(t.busLabel)}</td>
+          <td>${escapeXml(t.axis)}</td>
+          <td>${escapeXml(t.routeName)}</td>
+          <td>${t.reservedSeats}</td>
+          <td>${t.boardedSeats}</td>
+          <td>${t.absentSeats}</td>
+          <td>${t.delayMinutes}</td>
+          <td>${t.revenue}</td>
+        </tr>`).join("") : `<tr><td colspan="9">Aucune tournée clôturée pour cette journée.</td></tr>`;
+
+      const workbook = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+        body{font-family:Arial,sans-serif;color:#17313a}
+        h1{color:#05666a} h2{color:#05666a;margin-top:28px}
+        table{border-collapse:collapse;width:100%;margin-bottom:22px}
+        th,td{border:1px solid #9db7bb;padding:8px;text-align:left}
+        th{background:#0a8c91;color:#fff}
+        .totals td{font-weight:bold;background:#fff5cf}
+      </style></head><body>
+        <h1>TACLAR Multiservices — Rapport quotidien</h1>
+        <p>Date : ${escapeXml(dateLabel)}</p>
+        <p>Rapport généré depuis l’interface Direction après clôture des tournées.</p>
+        <h2>Résumé général</h2>
+        <table><tr><th>Tournées clôturées</th><th>Places enregistrées</th><th>Recette totale (FCFA)</th></tr>
+          <tr class="totals"><td>${totalTrips}</td><td>${totalSeats}</td><td>${totalRevenue}</td></tr>
+        </table>
+        <h2>Résumé par bus</h2>
+        <table><tr><th>Bus</th><th>Trajet</th><th>Tournées</th><th>Places</th><th>Recette (FCFA)</th></tr>${summaryRows}</table>
+        <h2>Détail des tournées clôturées</h2>
+        <table><tr><th>Heure fin</th><th>Bus</th><th>Axe</th><th>Trajet</th><th>Places</th><th>Montés</th><th>Absents</th><th>Retard (min)</th><th>Recette (FCFA)</th></tr>${detailRows}</table>
+      </body></html>`;
+
+      const blob = new Blob(["\ufeff", workbook], {type:"application/vnd.ms-excel;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `TACLAR_Rapport_quotidien_${fileDate}.xls`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      show(trips.length ? "Rapport quotidien Excel généré." : "Rapport Excel généré, mais aucune tournée n’est encore clôturée.");
+    }
+
+    document.getElementById("dailyExcelBtn").addEventListener("click", exportDailyExcel);
+
+    render();
+  </script>
+  <script src="auth.js"></script>
+</body>
+</html>

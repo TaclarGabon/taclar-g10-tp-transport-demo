@@ -20,11 +20,10 @@
 
     <nav class="side-nav">
       <a class="side-link " href="index.html"><span class="icon">⌂</span><span>Accueil</span></a>
-      <a class="side-link " href="client.html"><span class="icon">🗓</span><span>Réservation</span></a>
-      <a class="side-link active" href="chauffeur.html"><span class="icon">👤</span><span>Interface chauffeur</span></a>
-      <a class="side-link " href="dispatch.html"><span class="icon">📍</span><span>Suivi des bus</span></a>
-      <a class="side-link " href="recettes.html"><span class="icon">📊</span><span>Recettes</span></a>
-      <a class="side-link " href="index.html"><span class="icon">⚙</span><span>Paramètres</span></a>
+      <a class="side-link " href="client.html"><span class="icon">👤</span><span>Client</span></a>
+      <a class="side-link active" href="chauffeur.html"><span class="icon">◉</span><span>Chauffeur</span></a>
+      <a class="side-link " href="dispatch.html"><span class="icon">▥</span><span>Chef d’exploitation</span></a>
+      <a class="side-link " href="direction.html"><span class="icon">◔</span><span>Direction</span></a>
     </nav>
 
     <div class="side-spacer"></div>
@@ -37,13 +36,13 @@
     <div class="profile-box">
       <div class="avatar">👤</div>
       <div>
-        <div style="font-weight:800">Client</div>
-        <div style="font-size:13px;opacity:.92">+241 06 12 34 56</div>
-        <span class="small-green">● En ligne</span>
+        <div style="font-weight:800" data-role-name>Chauffeur</div>
+        <div style="font-size:13px;opacity:.92">+1 778 808 2048</div>
+        <span class="small-green" data-role-status>● En ligne</span>
       </div>
     </div>
 
-    <a class="logout-link" href="index.html">↩ Déconnexion</a>
+    <a class="logout-link js-logout" href="login.html">↩ Déconnexion</a>
   </aside>
 
     <main class="content-area">
@@ -56,13 +55,7 @@
               <p>Suivi de course, embarquement, cash station, incidents et journal</p>
             </div>
           </div>
-          <nav class="top-nav">
-            <a href="index.html">Accueil</a>
-            <a href="client.html">Réservation</a>
-            <a class="active" href="chauffeur.html">Chauffeur</a>
-            <a href="dispatch.html">Suivi des bus</a>
-            <a href="recettes.html">Recettes</a>
-          </nav>
+          <div class="user-chip">👤 <span>Chauffeur</span></div>
         </div>
 
         <section class="driver-main">
@@ -421,5 +414,6 @@
     document.getElementById("cashSeats").addEventListener("input", updateCashFare);
     render();
   </script>
+  <script src="auth.js"></script>
 </body>
 </html>

@@ -20,11 +20,10 @@
 
     <nav class="side-nav">
       <a class="side-link " href="index.html"><span class="icon">⌂</span><span>Accueil</span></a>
-      <a class="side-link active" href="client.html"><span class="icon">🗓</span><span>Réservation</span></a>
-      <a class="side-link " href="chauffeur.html"><span class="icon">👤</span><span>Interface chauffeur</span></a>
-      <a class="side-link " href="dispatch.html"><span class="icon">📍</span><span>Suivi des bus</span></a>
-      <a class="side-link " href="recettes.html"><span class="icon">📊</span><span>Recettes</span></a>
-      <a class="side-link " href="index.html"><span class="icon">⚙</span><span>Paramètres</span></a>
+      <a class="side-link active" href="client.html"><span class="icon">👤</span><span>Client</span></a>
+      <a class="side-link " href="chauffeur.html"><span class="icon">◉</span><span>Chauffeur</span></a>
+      <a class="side-link " href="dispatch.html"><span class="icon">▥</span><span>Chef d’exploitation</span></a>
+      <a class="side-link " href="direction.html"><span class="icon">◔</span><span>Direction</span></a>
     </nav>
 
     <div class="side-spacer"></div>
@@ -37,27 +36,24 @@
     <div class="profile-box">
       <div class="avatar">👤</div>
       <div>
-        <div style="font-weight:800">Client</div>
-        <div style="font-size:13px;opacity:.92">+241 06 12 34 56</div>
-        <span class="small-green">● En ligne</span>
+        <div style="font-weight:800" data-role-name>Client</div>
+        <div style="font-size:13px;opacity:.92">+1 778 808 2048</div>
+        <span class="small-green" data-role-status>● En ligne</span>
       </div>
     </div>
 
-    <a class="logout-link" href="index.html">↩ Déconnexion</a>
+    <a class="logout-link js-logout" href="login.html">↩ Déconnexion</a>
   </aside>
 
     <main class="content-area">
       
     <header class="topbar">
       <div class="page-heading">
-        <h1>Réservez votre place</h1>
+        <h1>Réservation client</h1>
         <p>Réservation simple, rapide et sécurisée de votre trajet en ligne. La cliente choisit son axe, son point de montée, le nombre de places et son mode de paiement.</p>
       </div>
       <div class="topbar-actions">
-        <div class="top-icon small-badge" data-count="3">🔔</div>
-        <div class="top-icon">✉</div>
-        <div class="top-icon">?</div>
-        <div class="user-chip">👤 <span>Client</span> ▾</div>
+        <div class="user-chip">👤 <span>Client</span></div>
       </div>
     </header>
     
@@ -102,8 +98,12 @@
       <section class="grid">
         <article class="card">
           <h2>Vos informations</h2>
-          <p class="muted">Aucun nom obligatoire : le numéro de téléphone sert d’identifiant de réservation.</p>
+          <p class="muted">Renseignez le nom, le téléphone et le nombre de places. Le montant se calcule automatiquement selon le bus, le point de montée et les tarifs du fichier initial.</p>
           <div class="form-grid">
+            <div>
+              <label for="name">Nom du client</label>
+              <input id="name" type="text" placeholder="Ex : Jean M." />
+            </div>
             <div>
               <label for="phone">Numéro de téléphone</label>
               <input id="phone" type="tel" placeholder="Ex : +241 06 12 34 56" />
@@ -119,9 +119,6 @@
             <div>
               <label for="seats">Nombre de places</label>
               <input id="seats" type="number" min="1" max="24" value="1" />
-            </div>
-            <div class="full hide">
-              <input id="name" type="text" value="Client" />
             </div>
           </div>
 
@@ -160,13 +157,12 @@
           <div class="whatsapp-box">
             <div>
               <div class="wa-title">Notification WhatsApp</div>
-              <div class="helper-note">Après la réservation, un message peut être préparé pour avertir l’exploitation / le groupe WhatsApp.</div>
+              <div class="helper-note">Après validation, WhatsApp s’ouvre avec un message détaillé destiné au numéro de démonstration TACLAR : +1 778 808 2048.</div>
             </div>
             <a id="whatsappLink" class="whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer">WhatsApp non prêt</a>
           </div>
 
-          <button class="primary-action" id="reserveBtn">Réserver maintenant</button>
-          <button class="secondary" id="sampleBtn">Ajouter un exemple</button>
+          <button class="primary-action" id="reserveBtn">Réserver et payer votre place</button>
           <div id="message" class="message"></div>
         </article>
       </section>
@@ -175,7 +171,7 @@
 
   <script src="app.js"></script>
   <script>
-    const ADMIN_WHATSAPP = "24100000000";
+    const ADMIN_WHATSAPP = "17788082048";
     const busSelect = document.getElementById("busSelect");
     const boarding = document.getElementById("boarding");
     const destination = document.getElementById("destination");
@@ -247,19 +243,38 @@
       msg.className = "message " + (type === "error" ? "err" : type === "info" ? "info" : "ok");
     }
 
-    function buildWhatsappLink(result, totalAmount){
+    function buildWhatsappLink(result){
       const busDef = G10TP.getBusDef(currentBusId());
-      const phone = (document.getElementById('phone').value || '').trim() || 'non renseigné';
-      const text = `Nouvelle réservation site TACLAR%0ARef : ${encodeURIComponent(result.ref || '')}%0ABus : ${encodeURIComponent(busDef.label)}%0ATrajet : ${encodeURIComponent(busDef.routeName)}%0APoint de montée : ${encodeURIComponent(boarding.value)}%0ADestination : ${encodeURIComponent(destination.value)}%0APlaces : ${encodeURIComponent(document.getElementById('seats').value)}%0ATéléphone client : ${encodeURIComponent(phone)}%0APaiement : ${encodeURIComponent(currentPaymentMethod())}%0AMontant : ${encodeURIComponent(totalAmount)}`;
-      const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${text}`;
+      const name = (document.getElementById('name').value || '').trim();
+      const phone = (document.getElementById('phone').value || '').trim();
+      const seats = parseInt(document.getElementById('seats').value, 10) || 1;
+      const boardingStop = busDef.stops.find(stop => stop.name === boarding.value);
+      const boardingTime = boardingStop ? boardingStop.time : busDef.startTime;
+      const amount = G10TP.formatMoney(result.total);
+      const paymentLine = result.paymentMethod === 'Airtel Money'
+        ? `Paiement Airtel Money (simulation démo) : ${amount}`
+        : `Paiement sur place : ${amount} à encaisser`;
+      const message = [
+        'TACLAR G10 — Nouvelle réservation',
+        `Nom : ${name}`,
+        `Téléphone : ${phone}`,
+        `Bus : ${busDef.label}`,
+        `Axe : ${busDef.routeName}`,
+        `Montée : ${boarding.value} à ${boardingTime}`,
+        `Destination : ${destination.value}`,
+        `Places : ${seats}`,
+        paymentLine,
+        `Référence : ${result.ref}`,
+        `Consigne client : se présenter 15 minutes avant, soit à ${boardingTime}.`
+      ].join('\n');
+      const url = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(message)}`;
       waLink.href = url;
-      waLink.textContent = 'Ouvrir la notification WhatsApp';
+      waLink.textContent = 'Ouvrir WhatsApp et envoyer';
       return url;
     }
 
     document.getElementById("reserveBtn").addEventListener("click", () => {
       const seats = parseInt(document.getElementById("seats").value, 10) || 1;
-      const total = G10TP.reservationTotal(currentBusId(), boarding.value, seats);
       const result = G10TP.addReservation(currentBusId(), {
         name:document.getElementById("name").value,
         phone:document.getElementById("phone").value,
@@ -267,40 +282,16 @@
         seats:seats,
         paymentMethod: currentPaymentMethod()
       });
-      render();
       if(result.ok){
-        const refMatch = result.message.match(/Référence :\s*([^\.]+)/);
-        result.ref = refMatch ? refMatch[1] : '';
-        buildWhatsappLink(result, G10TP.formatMoney(total));
-        show(result.message + ' Notification WhatsApp prête.', 'ok');
-        document.getElementById("phone").value = "";
-        document.getElementById("seats").value = 1;
+        const whatsappUrl = buildWhatsappLink(result);
+        render();
+        waLink.href = whatsappUrl;
+        waLink.textContent = 'Ouvrir WhatsApp et envoyer';
+        show(result.message + ' Présentez-vous 15 minutes avant l’heure de montée. WhatsApp est prêt.', 'ok');
+        window.open(whatsappUrl, '_blank', 'noopener');
       } else {
         show(result.message, 'error');
       }
-    });
-
-    const samples = [
-      {name:"Client 2048", phone:"+241 06 12 34 56", seats:2},
-      {name:"Client 1122", phone:"+241 07 22 33 44", seats:1},
-      {name:"Client 7788", phone:"+241 05 66 77 88", seats:3}
-    ];
-    let sampleIndex = 0;
-
-    document.getElementById("sampleBtn").addEventListener("click", () => {
-      const sample = samples[sampleIndex % samples.length];
-      sampleIndex++;
-      document.getElementById('phone').value = sample.phone;
-      document.getElementById('seats').value = sample.seats;
-      const result = G10TP.addReservation(currentBusId(), {...sample, boarding:boarding.value, paymentMethod: currentPaymentMethod()});
-      render();
-      if(result.ok){
-        const total = G10TP.reservationTotal(currentBusId(), boarding.value, sample.seats);
-        const refMatch = result.message.match(/Référence :\s*([^\.]+)/);
-        result.ref = refMatch ? refMatch[1] : '';
-        buildWhatsappLink(result, G10TP.formatMoney(total));
-      }
-      show(result.message, result.ok ? "ok" : "error");
     });
 
     busSelect.addEventListener("change", render);
@@ -309,5 +300,6 @@
     document.querySelectorAll('input[name="paymentMethod"]').forEach(r => r.addEventListener('change', updateFare));
     render();
   </script>
+  <script src="auth.js"></script>
 </body>
 </html>
