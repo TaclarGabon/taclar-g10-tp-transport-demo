@@ -361,6 +361,28 @@
       });
       if(result.ok){
         const whatsappUrl = buildWhatsappLink(result);
+        const busDefForNotice = G10TP.getBusDef(currentBusId());
+        const boardingStopForNotice = busDefForNotice.stops.find(stop => stop.name === boarding.value);
+        const boardingTimeForNotice = boardingStopForNotice ? boardingStopForNotice.time : busDefForNotice.startTime;
+        const arrivalTimeForNotice = subtractMinutes(boardingTimeForNotice, 15);
+        const internalMessage = [
+          `Nom : ${{document.getElementById('name').value.trim()}}`,
+          `Téléphone : ${{document.getElementById('phone').value.trim()}}`,
+          `Bus : ${{busDefForNotice.label}}`,
+          `Axe : ${{busDefForNotice.routeName}}`,
+          `Montée : ${{boarding.value}} à ${{boardingTimeForNotice}}`,
+          `Places : ${{seats}}`,
+          `Montant : ${{G10TP.formatMoney(result.total)}}`,
+          `Paiement : ${{result.paymentMethod}}`,
+          `Référence : ${{result.ref}}`,
+          `Client attendu à ${{arrivalTimeForNotice}}`
+        ].join('\n');
+        G10TP.addNotification({
+          type:'reservation',
+          title:'Nouvelle réservation payée',
+          message:internalMessage,
+          reservationRef:result.ref
+        });
         render();
         waLink.href = whatsappUrl;
         waLink.textContent = 'Ouvrir WhatsApp et envoyer';

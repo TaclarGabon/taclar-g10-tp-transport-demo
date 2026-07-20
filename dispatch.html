@@ -53,6 +53,8 @@
         <p>Vue d’ensemble des 6 bus : état de la course, places réservées, places restantes et détail passagers par point de montée.</p>
       </div>
       <div class="topbar-actions">
+        <button class="top-icon notification-trigger" id="notificationBell" type="button" aria-label="Notifications">🔔<span class="notification-count" id="notificationCount">0</span></button>
+        <button class="top-icon notification-trigger" id="notificationEnvelope" type="button" aria-label="Messages">✉<span class="notification-count" id="messageCount">0</span></button>
         <div class="user-chip">👤 <span>Chef d’exploitation</span></div>
       </div>
     </header>
@@ -87,6 +89,22 @@
       <div id="modalContent"></div>
     </div>
   </div>
+  <div class="modal-backdrop" id="notificationModal">
+    <div class="modal notification-modal">
+      <div class="modal-head">
+        <div>
+          <h2>Messages de réservation</h2>
+          <p class="muted">Copie interne des notifications créées lors des réservations en ligne.</p>
+        </div>
+        <button class="close-btn" id="closeNotificationModal">Fermer</button>
+      </div>
+      <div class="notification-toolbar">
+        <strong id="notificationSummary">0 nouveau message</strong>
+        <button class="secondary" id="markAllReadBtn" type="button">Tout marquer comme lu</button>
+      </div>
+      <div id="notificationList"></div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
   <script>
@@ -96,6 +114,47 @@
     const modalTitle = document.getElementById("modalTitle");
     const modalSubtitle = document.getElementById("modalSubtitle");
     const modalContent = document.getElementById("modalContent");
+    const notificationModal = document.getElementById("notificationModal");
+    const notificationList = document.getElementById("notificationList");
+
+    function renderNotifications(){
+      const notifications = G10TP.getNotifications();
+      const unread = notifications.filter(n => !n.read).length;
+      document.getElementById('notificationCount').textContent = unread;
+      document.getElementById('messageCount').textContent = unread;
+      document.getElementById('notificationCount').classList.toggle('hide', unread === 0);
+      document.getElementById('messageCount').classList.toggle('hide', unread === 0);
+      document.getElementById('notificationSummary').textContent = `${unread} nouveau${unread > 1 ? 'x' : ''} message${unread > 1 ? 's' : ''}`;
+      if(notifications.length === 0){
+        notificationList.innerHTML = '<div class="empty">Aucun message de réservation.</div>';
+        return;
+      }
+      notificationList.innerHTML = notifications.map(n => `
+        <article class="notification-item ${n.read ? 'read' : 'unread'}" data-notification-id="${n.id}">
+          <div class="notification-item-head">
+            <div>
+              <span class="badge ${n.read ? 'badge-wait' : 'badge-open'}">${n.read ? 'Lu' : 'Nouveau'}</span>
+              <strong>${escapeHtml(n.title)}</strong>
+            </div>
+            <time>${escapeHtml(n.createdAt)}</time>
+          </div>
+          <pre>${escapeHtml(n.message)}</pre>
+          ${n.read ? '' : '<button class="secondary mark-read-btn" type="button">Marquer comme lu</button>'}
+        </article>
+      `).join('');
+      notificationList.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = btn.closest('[data-notification-id]');
+          G10TP.markNotificationRead(item.dataset.notificationId);
+          renderNotifications();
+        });
+      });
+    }
+
+    function openNotificationModal(){
+      renderNotifications();
+      notificationModal.classList.add('open');
+    }
 
     function render(){
       const state = G10TP.loadState();
@@ -194,6 +253,12 @@
                 document.getElementById("closeModalBtn").addEventListener("click", closeModal);
     modal.addEventListener("click", e => { if(e.target === modal) closeModal(); });
     document.addEventListener("keydown", e => { if(e.key === "Escape") closeModal(); });
+
+    document.getElementById('notificationBell').addEventListener('click', openNotificationModal);
+    document.getElementById('notificationEnvelope').addEventListener('click', openNotificationModal);
+    document.getElementById('closeNotificationModal').addEventListener('click', () => notificationModal.classList.remove('open'));
+    notificationModal.addEventListener('click', e => { if(e.target === notificationModal) notificationModal.classList.remove('open'); });
+    document.getElementById('markAllReadBtn').addEventListener('click', () => { G10TP.markAllNotificationsRead(); renderNotifications(); });
     render();
   </script>
   <script src="auth.js"></script>

@@ -101,7 +101,7 @@ function defaultState(){
     {id:uid(), name:"EDAN", phone:"", boarding:"La Poste", seats:4, ref:"G10-B1-1003", createdAt:nowLabel(), farePerSeat:300, totalAmount:1200, paymentMethod:"Réservation app", paymentStatus:"Payé"}
   ];
 
-  return { buses, completedTrips: [] };
+  return { buses, completedTrips: [], notifications: [] };
 }
 
 function loadState(){
@@ -124,6 +124,7 @@ function loadState(){
       if(!state.buses[bus.id].incidentLog){ state.buses[bus.id].incidentLog = []; }
     });
     if(!state.completedTrips){ state.completedTrips = []; }
+    if(!state.notifications){ state.notifications = []; }
     return state;
   }catch(e){
     const state = defaultState();
@@ -154,6 +155,7 @@ function clearAllEmpty(){
     state.buses[id].incidentLog = [];
   });
   state.completedTrips = [];
+  state.notifications = [];
   saveState(state);
   return state;
 }
@@ -940,9 +942,50 @@ function tripsByBus(state){
   return Object.values(rows);
 }
 
+function addNotification(data){
+  const state = loadState();
+  if(!state.notifications) state.notifications = [];
+  const item = {
+    id: uid(),
+    type: data.type || "reservation",
+    title: data.title || "Nouvelle réservation",
+    message: data.message || "",
+    createdAt: nowLabel(),
+    read: false,
+    reservationRef: data.reservationRef || ""
+  };
+  state.notifications.unshift(item);
+  saveState(state);
+  return item;
+}
+
+function getNotifications(){
+  const state = loadState();
+  return state.notifications || [];
+}
+
+function unreadNotificationCount(){
+  return getNotifications().filter(n => !n.read).length;
+}
+
+function markNotificationRead(id){
+  const state = loadState();
+  const item = (state.notifications || []).find(n => n.id === id);
+  if(item) item.read = true;
+  saveState(state);
+  return item || null;
+}
+
+function markAllNotificationsRead(){
+  const state = loadState();
+  (state.notifications || []).forEach(n => n.read = true);
+  saveState(state);
+  return state.notifications || [];
+}
+
 window.G10TP = {
   BUS_DEFINITIONS, CAPACITY, loadState, saveState, resetAll, clearAllEmpty, getBusDef,
   totalReserved, remainingSeats, currentStatus, isTripFinished, getStepText, advanceTrip,
   resetTripOnly, resetBusFull, addReservation, sortedReservations, groupTotal,
-  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus, formatMoney, fareInfo, farePerSeat, kmForFare, reservationTotal, busRevenue, addCashPassenger, passengerStatusLabel, passengerStatusClass, setPassengerStatus, currentBoardingStopForDeparture, confirmAllAtCurrentStop, boardingSummary, actualTimeHtml, recordActualTimeForStage, signalIncident, delayLabel, passengersToNotifyForIncident, eligibleBoardingStopsForAlerts, addDelayToPlanTime, recordCompletedTrip, shiftRevenueTotal, shiftSeatsTotal, tripsByBus
+  renderReservationTable, renderTimeline, fillBusSelect, fillBoardingSelect, terminalName, occupancyStatus, movementStatus, formatMoney, fareInfo, farePerSeat, kmForFare, reservationTotal, busRevenue, addCashPassenger, passengerStatusLabel, passengerStatusClass, setPassengerStatus, currentBoardingStopForDeparture, confirmAllAtCurrentStop, boardingSummary, actualTimeHtml, recordActualTimeForStage, signalIncident, delayLabel, passengersToNotifyForIncident, eligibleBoardingStopsForAlerts, addDelayToPlanTime, recordCompletedTrip, shiftRevenueTotal, shiftSeatsTotal, tripsByBus, addNotification, getNotifications, unreadNotificationCount, markNotificationRead, markAllNotificationsRead
 };
